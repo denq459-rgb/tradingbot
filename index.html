@@ -3,302 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Advanced AI Algo Bot</title>
+    <title>AlfaBit AI Predictor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0b0e11;
-            --card-bg: #1e2329;
-            --primary: #f0b90b;
-            --success: #02c076;
-            --danger: #cf304a;
-            --text: #ffffff;
-            --gray: #848e9c;
+            --bg-color: #0d0f12;
+            --card-bg: #181a20;
+            --accent: #98ff33;
+            --text-main: #ffffff;
+            --text-gray: #848e9c;
+            --border-color: #2b2f36;
         }
 
         body {
             background-color: var(--bg-color);
-            color: var(--text);
+            color: var(--text-main);
             font-family: 'Inter', -apple-system, sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            user-select: none;
         }
 
-        /* Навигация по экранам */
+        /* --- ОБЩИЕ СТИЛИ ЭКРАНОВ --- */
         .screen {
             display: none;
-            width: 100%;
-            height: 100vh;
             flex-direction: column;
-            align-items: center;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        /* --- ЭКРАН ВЫБОРА ПАР --- */
-        .header-selection {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .title-selection {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .subtitle-selection {
-            font-size: 12px;
-            color: var(--gray);
-        }
-
-        .pairs-list {
-            width: 90%;
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 10px;
+            flex: 1;
             overflow-y: auto;
+            animation: fadeIn 0.3s ease;
+        }
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .header {
+            padding: 20px 15px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
+        .header-title { font-size: 14px; font-weight: 600; color: var(--text-gray); text-transform: uppercase; }
+
+        /* --- ЭКРАН 1: ВЫБОР ПАР --- */
         .pair-row {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #2b3139;
-            cursor: pointer;
-            transition: background 0.2s;
+            padding: 16px 15px;
+            border-bottom: 1px solid var(--border-color);
         }
+        .pair-row:active { background: #1e2126; }
+        .coin-icon { width: 36px; height: 36px; background: #2b2f36; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 16px; }
+        .symbol-main { font-size: 16px; font-weight: bold; }
+        .trade-btn-sm { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; margin-left: auto; }
 
-        .pair-row:last-child { border-bottom: none; }
-        .pair-row:active { background: #2b3139; }
-
-        .pair-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
+        /* --- ЭКРАН 2: ВЫБОР ТАЙМЕРА --- */
+        .timer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
         }
-
-        .pair-arrow { color: var(--gray); font-size: 12px; }
-
-        .pair-tags {
-            display: flex;
-            gap: 5px;
-        }
-
-        .tag {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .tag.hot { background: rgba(240, 185, 11, 0.1); color: var(--primary); border: 1px solid var(--primary); }
-        .tag.otc { background: rgba(255, 100, 0, 0.1); color: #ff6400; border: 1px solid #ff6400; }
-
-        /* --- ЭКРАН АНАЛИЗА --- */
-        .header-analysis {
-            width: 100%;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .timer-card {
             background: var(--card-bg);
-        }
-
-        .back-btn {
-            color: var(--primary);
-            background: none;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .chart-container {
-            width: 95%;
-            height: 250px;
-            margin-top: 10px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #333;
-        }
-
-        .signal-box {
-            position: relative;
-            width: 150px;
-            height: 170px;
-            background: var(--card-bg);
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--primary);
-            margin: 20px 0;
-        }
-
-        .btn-main {
-            width: 90%;
-            padding: 18px;
-            background: linear-gradient(45deg, #f0b90b, #f3ba2f);
-            border: none;
+            border: 1px solid var(--border-color);
+            padding: 20px;
             border-radius: 16px;
-            color: #000;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            text-align: center;
+            transition: 0.2s;
         }
+        .timer-card:active { border-color: var(--accent); transform: scale(0.95); }
+        .timer-val { font-size: 24px; font-weight: 900; color: var(--accent); display: block; }
+        .timer-desc { font-size: 10px; color: var(--text-gray); text-transform: uppercase; margin-top: 5px; }
 
-        .scanner-line {
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            background: var(--primary);
-            top: 0;
-            display: none;
-            animation: scan 2s linear infinite;
+        /* --- ЭКРАН 3: ТОРГОВЛЯ --- */
+        .chart-box { width: 100%; height: 280px; background: #000; }
+        .signal-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .hexagon {
+            position: relative; width: 130px; height: 150px; background: var(--card-bg); border: 2px solid var(--accent);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;
         }
+        .action-btn { width: 100%; padding: 18px; background: var(--accent); color: #000; border: none; border-radius: 14px; font-weight: 900; font-size: 16px; box-shadow: 0 5px 15px rgba(152, 255, 51, 0.2); }
 
-        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
-        .analyzing { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .pulse { animation: pulseAnim 1.5s infinite; }
+        @keyframes pulseAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
     </style>
 </head>
 <body>
 
     <!-- ЭКРАН 1: ВЫБОР ПАР -->
-    <div id="screen-selection" class="screen active">
-        <div class="header-selection">
-            <div class="title-selection">Most Popular Pairs</div>
-            <div class="subtitle-selection">Choose your trading pair</div>
+    <div id="screen-main" class="screen active">
+        <div class="header"><span class="header-title">Выберите актив ↕</span></div>
+        <div class="pair-row" onclick="toTimer('BTCUSDT', 'BTC / USDT')">
+            <div class="coin-icon">₿</div>
+            <div style="display:flex; flex-direction:column;"><span class="symbol-main">BTC / USDT</span><span style="font-size:10px; color:var(--text-gray);">Bitcoin</span></div>
+            <button class="trade-btn-sm">Выбрать</button>
         </div>
-
-        <div class="pairs-list">
-            <div class="pair-row" onclick="selectPair('EURUSD', '🇪🇺 EUR ➔ 🇺🇸 USD')">
-                <div class="pair-info"><span>🇪🇺 EUR</span> <span class="pair-arrow">➔</span> <span>🇺🇸 USD</span></div>
-                <div class="pair-tags"><span class="tag hot">Hot</span><span class="tag otc">OTC</span></div>
-            </div>
-            <div class="pair-row" onclick="selectPair('GBPUSD', '🇬🇧 GBP ➔ 🇺🇸 USD')">
-                <div class="pair-info"><span>🇬🇧 GBP</span> <span class="pair-arrow">➔</span> <span>🇺🇸 USD</span></div>
-                <div class="pair-tags"><span class="tag hot">Hot</span></div>
-            </div>
-            <div class="pair-row" onclick="selectPair('USDJPY', '🇺🇸 USD ➔ 🇯🇵 JPY')">
-                <div class="pair-info"><span>🇺🇸 USD</span> <span class="pair-arrow">➔</span> <span>🇯🇵 JPY</span></div>
-                <div class="pair-tags"><span class="tag otc">OTC</span></div>
-            </div>
-            <div class="pair-row" onclick="selectPair('EURGBP', '🇪🇺 EUR ➔ 🇬🇧 GBP')">
-                <div class="pair-info"><span>🇪🇺 EUR</span> <span class="pair-arrow">➔</span> <span>🇬🇧 GBP</span></div>
-                <div class="pair-tags"><span class="tag hot">Hot</span><span class="tag otc">OTC</span></div>
-            </div>
-            <div class="pair-row" onclick="selectPair('AUDUSD', '🇦🇺 AUD ➔ 🇺🇸 USD')">
-                <div class="pair-info"><span>🇦🇺 AUD</span> <span class="pair-arrow">➔</span> <span>🇺🇸 USD</span></div>
-                <div class="pair-tags"><span class="tag otc">OTC</span></div>
-            </div>
+        <div class="pair-row" onclick="toTimer('ETHUSDT', 'ETH / USDT')">
+            <div class="coin-icon">Ξ</div>
+            <div style="display:flex; flex-direction:column;"><span class="symbol-main">ETH / USDT</span><span style="font-size:10px; color:var(--text-gray);">Ethereum</span></div>
+            <button class="trade-btn-sm">Выбрать</button>
         </div>
-        <p style="color: var(--gray); font-size: 12px; margin-top: 15px;">Powered by Advanced AI</p>
+        <div class="pair-row" onclick="toTimer('TONUSDT', 'TON / USDT')">
+            <div class="coin-icon">T</div>
+            <div style="display:flex; flex-direction:column;"><span class="symbol-main">TON / USDT</span><span style="font-size:10px; color:var(--text-gray);">Toncoin</span></div>
+            <button class="trade-btn-sm">Выбрать</button>
+        </div>
     </div>
 
-    <!-- ЭКРАН 2: АНАЛИЗ -->
-    <div id="screen-analysis" class="screen">
-        <div class="header-analysis">
-            <button class="back-btn" onclick="showSelection()">❮ К выбору пар</button>
-            <div id="active-pair-name" style="font-size: 14px; font-weight: bold;">EUR/USD</div>
-            <div style="width: 50px;"></div> <!-- Отступ -->
+    <!-- ЭКРАН 2: ВЫБОР ТАЙМЕРА -->
+    <div id="screen-timer" class="screen">
+        <div class="header">
+            <div onclick="showScreen('screen-main')" style="color:var(--accent); cursor:pointer;">❮</div>
+            <span class="header-title">Выберите время анализа</span>
+        </div>
+        <div class="timer-grid">
+            <div class="timer-card" onclick="toTrade('5s')"><span class="timer-val">5s</span><span class="timer-desc">Ultra Fast</span></div>
+            <div class="timer-card" onclick="toTrade('15s')"><span class="timer-val">15s</span><span class="timer-desc">Fast</span></div>
+            <div class="timer-card" onclick="toTrade('30s')"><span class="timer-val">30s</span><span class="timer-desc">Stable</span></div>
+            <div class="timer-card" onclick="toTrade('1m')"><span class="timer-val">1m</span><span class="timer-desc">Medium</span></div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН 3: АНАЛИЗ -->
+    <div id="screen-trade" class="screen">
+        <div class="header">
+            <div onclick="showScreen('screen-timer')" style="color:var(--accent); cursor:pointer;">❮</div>
+            <div style="display:flex; flex-direction:column;">
+                <span id="active-pair" style="font-size:14px; font-weight:bold;">BTC/USDT</span>
+                <span id="active-timer" style="font-size:10px; color:var(--accent);">Time: 5s</span>
+            </div>
         </div>
 
-        <div class="chart-container">
-            <div id="tradingview_widget"></div>
-        </div>
+        <div id="chart" class="chart-box"></div>
 
-        <div style="display: flex; gap: 30px; margin-top: 15px;">
-            <div style="text-align: center;"><div style="font-size: 10px; color: var(--gray);">Accuracy</div><div id="acc-val" style="color: var(--success); font-weight: bold;">94.2%</div></div>
-            <div style="text-align: center;"><div style="font-size: 10px; color: var(--gray);">Strategy</div><div style="color: white; font-weight: bold;">Scalp AI</div></div>
+        <div class="signal-area">
+            <div class="hexagon" id="sigBox">
+                <div id="sig-icon" style="font-size:30px;">📡</div>
+                <div id="sig-text" style="font-weight:900; margin-top:5px;">READY</div>
+            </div>
+            <button class="action-btn" id="aiBtn" onclick="startScan()">ПОЛУЧИТЬ СИГНАЛ</button>
         </div>
-
-        <div class="signal-box" id="signalBox">
-            <div class="scanner-line" id="scanner"></div>
-            <div id="signal-icon" style="font-size: 40px;">📡</div>
-            <div id="signal-value" style="font-weight: 900;">READY</div>
-        </div>
-
-        <button class="btn-main" id="analyzeBtn" onclick="runAI()">GET AI SIGNAL</button>
     </div>
 
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        
+        let selectedPair = "";
+        let selectedSymbol = "";
 
-        let currentSymbol = "EURUSD";
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            tg.HapticFeedback.impactOccurred('light');
+        }
 
-        function selectPair(symbol, fullName) {
-            currentSymbol = symbol;
-            document.getElementById('active-pair-name').innerText = fullName;
-            document.getElementById('screen-selection').classList.remove('active');
-            document.getElementById('screen-analysis').classList.add('active');
+        function toTimer(symbol, pairName) {
+            selectedSymbol = symbol;
+            selectedPair = pairName;
+            showScreen('screen-timer');
+        }
+
+        function toTrade(time) {
+            document.getElementById('active-pair').innerText = selectedPair;
+            document.getElementById('active-timer').innerText = "Индикатор: " + time;
+            showScreen('screen-trade');
             
-            tg.HapticFeedback.impactOccurred('medium');
-
-            // Обновляем график под выбранную пару
             new TradingView.widget({
                 "autosize": true,
-                "symbol": "FX:" + symbol,
+                "symbol": "BINANCE:" + selectedSymbol,
                 "interval": "1",
                 "theme": "dark",
                 "style": "1",
                 "locale": "ru",
                 "hide_top_toolbar": true,
-                "container_id": "tradingview_widget"
+                "container_id": "chart"
             });
         }
 
-        function showSelection() {
-            document.getElementById('screen-analysis').classList.remove('active');
-            document.getElementById('screen-selection').classList.add('active');
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        function runAI() {
-            const btn = document.getElementById('analyzeBtn');
-            const box = document.getElementById('signalBox');
-            const scanner = document.getElementById('scanner');
-            const icon = document.getElementById('signal-icon');
-            const value = document.getElementById('signal-value');
+        function startScan() {
+            const btn = document.getElementById('aiBtn');
+            const box = document.getElementById('sigBox');
+            const icon = document.getElementById('sig-icon');
+            const text = document.getElementById('sig-text');
 
             btn.disabled = true;
-            box.classList.add('analyzing');
-            scanner.style.display = 'block';
-            icon.innerText = '🧠';
-            value.innerText = 'WAIT...';
+            box.classList.add('pulse');
+            icon.innerText = '⚙️';
+            text.innerText = 'АНАЛИЗ...';
+            text.style.color = '#fff';
             
             tg.HapticFeedback.impactOccurred('heavy');
 
             setTimeout(() => {
                 const isUp = Math.random() > 0.5;
-                box.classList.remove('analyzing');
-                scanner.style.display = 'none';
                 btn.disabled = false;
-
-                if (isUp) {
-                    icon.innerText = '🔼';
-                    value.innerText = 'UP (CALL)';
-                    value.style.color = 'var(--success)';
-                    box.style.borderColor = 'var(--success)';
+                box.classList.remove('pulse');
+                
+                if(isUp) {
+                    icon.innerText = '📈';
+                    text.innerText = 'ВВЕРХ';
+                    text.style.color = '#02c076';
+                    box.style.borderColor = '#02c076';
                 } else {
-                    icon.innerText = '🔽';
-                    value.innerText = 'DOWN (PUT)';
-                    value.style.color = 'var(--danger)';
-                    box.style.borderColor = 'var(--danger)';
+                    icon.innerText = '📉';
+                    text.innerText = 'ВНИЗ';
+                    text.style.color = '#cf304a';
+                    box.style.borderColor = '#cf304a';
                 }
                 tg.HapticFeedback.notificationOccurred('success');
-            }, 2000);
+            }, 2500);
         }
     </script>
 </body>
