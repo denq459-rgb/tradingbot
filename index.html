@@ -27,7 +27,6 @@
             overflow: hidden;
         }
 
-        /* --- ОБЩИЕ СТИЛИ ЭКРАНОВ --- */
         .screen {
             display: none;
             flex-direction: column;
@@ -56,39 +55,39 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- ЭКРАН 1: ВЫБОР ПАР --- */
+        /* --- ЭКРАН 1: ТОРГОВЫЕ ПАРЫ --- */
         .pair-row {
             display: flex;
             align-items: center;
-            padding: 16px 15px;
+            padding: 14px 15px;
             border-bottom: 1px solid var(--border-color);
         }
         .pair-row:active { background: #1e2126; }
         .coin-icon { 
-            width: 36px; 
-            height: 36px; 
+            width: 32px; 
+            height: 32px; 
             background: #2b2f36; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             margin-right: 12px; 
-            font-size: 16px; 
+            font-size: 14px; 
+            font-weight: bold;
         }
-        .symbol-main { font-size: 16px; font-weight: bold; }
+        .symbol-main { font-size: 15px; font-weight: bold; }
         .trade-btn-sm { 
             background: var(--accent); 
             color: #000; 
             border: none; 
-            padding: 8px 14px; 
+            padding: 7px 14px; 
             border-radius: 8px; 
-            font-size: 12px; 
+            font-size: 11px; 
             font-weight: 800; 
             margin-left: auto; 
-            box-shadow: 0 2px 5px rgba(152, 255, 51, 0.1);
         }
 
-        /* --- ЭКРАН 2: ВЫБОР ТАЙМЕРА --- */
+        /* --- ЭКРАН 2: ТАЙМЕР --- */
         .timer-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -101,7 +100,6 @@
             padding: 20px;
             border-radius: 16px;
             text-align: center;
-            transition: 0.2s;
         }
         .timer-card:active { border-color: var(--accent); transform: scale(0.95); }
         .timer-val { font-size: 24px; font-weight: 900; color: var(--accent); display: block; }
@@ -119,8 +117,8 @@
         }
         .hexagon {
             position: relative; 
-            width: 130px; 
-            height: 150px; 
+            width: 120px; 
+            height: 140px; 
             background: var(--card-bg); 
             border: 2px solid var(--accent);
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -129,7 +127,6 @@
             align-items: center; 
             justify-content: center; 
             margin-bottom: 20px;
-            transition: border-color 0.3s;
         }
         .action-btn { 
             width: 100%; 
@@ -140,13 +137,10 @@
             border-radius: 14px; 
             font-weight: 900; 
             font-size: 16px; 
-            box-shadow: 0 5px 15px rgba(152, 255, 51, 0.2); 
         }
-        .action-btn:disabled { background: #2b2f36; color: #555; box-shadow: none; }
 
         .pulse { animation: pulseAnim 1.5s infinite; }
         @keyframes pulseAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
     </style>
 </head>
 <body>
@@ -155,23 +149,33 @@
     <div id="screen-main" class="screen active">
         <div class="header"><span class="header-title">Торговые пары ↕</span></div>
         <div class="pair-row" onclick="toTimer('BTCUSDT', 'BTC / USDT')">
-            <div class="coin-icon" style="color: #F7931A;">₿</div>
+            <div class="coin-icon" style="color: #F7931A; border: 1px solid #F7931A;">₿</div>
             <div style="display:flex; flex-direction:column;"><span class="symbol-main">BTC / USDT</span><span style="font-size:10px; color:var(--text-gray);">Bitcoin</span></div>
             <button class="trade-btn-sm">Торговать</button>
         </div>
         <div class="pair-row" onclick="toTimer('ETHUSDT', 'ETH / USDT')">
-            <div class="coin-icon" style="color: #627EEA;">Ξ</div>
+            <div class="coin-icon" style="color: #627EEA; border: 1px solid #627EEA;">Ξ</div>
             <div style="display:flex; flex-direction:column;"><span class="symbol-main">ETH / USDT</span><span style="font-size:10px; color:var(--text-gray);">Ethereum</span></div>
             <button class="trade-btn-sm">Торговать</button>
         </div>
         <div class="pair-row" onclick="toTimer('TONUSDT', 'TON / USDT')">
-            <div class="coin-icon" style="color: #0088CC;">T</div>
+            <div class="coin-icon" style="color: #0088CC; border: 1px solid #0088CC;">T</div>
             <div style="display:flex; flex-direction:column;"><span class="symbol-main">TON / USDT</span><span style="font-size:10px; color:var(--text-gray);">Toncoin</span></div>
             <button class="trade-btn-sm">Торговать</button>
         </div>
+        <div class="pair-row" onclick="toTimer('NOTUSDT', 'NOT / USDT')">
+            <div class="coin-icon" style="color: #ffffff; border: 1px solid #ffffff;">N</div>
+            <div style="display:flex; flex-direction:column;"><span class="symbol-main">NOT / USDT</span><span style="font-size:10px; color:var(--text-gray);">Notcoin</span></div>
+            <button class="trade-btn-sm">Торговать</button>
+        </div>
         <div class="pair-row" onclick="toTimer('SOLUSDT', 'SOL / USDT')">
-            <div class="coin-icon" style="color: #14F195;">S</div>
+            <div class="coin-icon" style="color: #14F195; border: 1px solid #14F195;">S</div>
             <div style="display:flex; flex-direction:column;"><span class="symbol-main">SOL / USDT</span><span style="font-size:10px; color:var(--text-gray);">Solana</span></div>
+            <button class="trade-btn-sm">Торговать</button>
+        </div>
+        <div class="pair-row" onclick="toTimer('DOGEUSDT', 'DOGE / USDT')">
+            <div class="coin-icon" style="color: #BA9F33; border: 1px solid #BA9F33;">Ð</div>
+            <div style="display:flex; flex-direction:column;"><span class="symbol-main">DOGE / USDT</span><span style="font-size:10px; color:var(--text-gray);">Dogecoin</span></div>
             <button class="trade-btn-sm">Торговать</button>
         </div>
     </div>
@@ -220,27 +224,23 @@
         let selectedPair = "";
         let selectedSymbol = "";
 
-        // Навигация между экранами
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        // Переход к выбору времени
         function toTimer(symbol, pairName) {
             selectedSymbol = symbol;
             selectedPair = pairName;
             showScreen('screen-timer');
         }
 
-        // Переход к графику и анализу
         function toTrade(time) {
             document.getElementById('active-pair').innerText = selectedPair;
             document.getElementById('active-timer').innerText = "ИНДИКАТОР: " + time;
             showScreen('screen-trade');
             
-            // Инициализация графика TradingView
             new TradingView.widget({
                 "autosize": true,
                 "symbol": "BINANCE:" + selectedSymbol,
@@ -253,7 +253,6 @@
             });
         }
 
-        // Логика кнопки анализа
         function startScan() {
             const btn = document.getElementById('aiBtn');
             const box = document.getElementById('sigBox');
@@ -269,7 +268,6 @@
             
             tg.HapticFeedback.impactOccurred('heavy');
 
-            // Имитация задержки "вычислений ИИ"
             setTimeout(() => {
                 const isUp = Math.random() > 0.5;
                 btn.disabled = false;
