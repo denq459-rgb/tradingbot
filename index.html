@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AlfaBit Pro Predictor</title>
+    <title>AlfaBit AI Predictor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -22,13 +22,12 @@
             color: var(--text-main);
             font-family: 'Inter', -apple-system, sans-serif;
             margin: 0; padding: 0;
-            /* Изменено: разрешаем вертикальный скролл для всего тела */
             overflow-x: hidden;
             overflow-y: auto;
             min-height: 100vh;
         }
 
-        /* Фиксированный хедер, который не уплывает при скролле */
+        /* Фиксированный хедер */
         .header { 
             position: sticky;
             top: 0;
@@ -47,7 +46,6 @@
             display: none; 
             flex-direction: column; 
             width: 100%;
-            /* Изменено: высота подстраивается под контент */
             height: auto;
             min-height: calc(100vh - 60px); 
             animation: fadeIn 0.3s ease; 
@@ -56,72 +54,77 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- СПИСОК ПАР --- */
+        /* --- ЭКРАН 1: ТОРГОВЫЕ ПАРЫ --- */
         .pair-row { display: flex; align-items: center; padding: 18px 15px; border-bottom: 1px solid var(--border-color); }
         .pair-row:active { background: #1e2126; }
         .flag-icon { font-size: 20px; margin-right: 12px; width: 32px; text-align: center; }
         .symbol-main { font-size: 16px; font-weight: bold; }
         .trade-btn-sm { background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 800; margin-left: auto; }
 
-        /* --- ТАЙМЕР --- */
+        /* --- ЭКРАН 2: ВРЕМЯ --- */
         .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
         .timer-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 25px; border-radius: 16px; text-align: center; }
         .timer-val { font-size: 26px; font-weight: 900; color: var(--accent); display: block; }
         .timer-desc { font-size: 10px; color: var(--text-gray); text-transform: uppercase; margin-top: 6px; }
 
-        /* --- ЭКРАН АНАЛИЗА --- */
-        .chart-box { width: 100%; height: 300px; background: #000; flex-shrink: 0; }
-        
+        /* --- ЭКРАН 3: АНАЛИЗ (БЕЗ ГРАФИКА) --- */
         .signal-area { 
-            display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; 
-            padding: 30px 20px; 
-            /* Добавляем нижний отступ, чтобы кнопка не прилипала к краю при скролле */
-            padding-bottom: 50px;
+            flex: 1;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            min-height: 70vh; /* Центрируем по вертикали */
         }
 
-        .status-label { font-size: 12px; color: var(--text-gray); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .status-label { font-size: 12px; color: var(--text-gray); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* Крупная прямоугольная карточка */
         .signal-card {
             width: 100%;
-            max-width: 300px;
-            height: 220px;
+            max-width: 320px;
+            height: 240px;
             background: var(--card-bg);
-            border-radius: 24px;
+            border-radius: 28px;
             border: 2px solid var(--border-color);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
-            transition: all 0.5s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            position: relative;
         }
 
         .signal-image {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             object-fit: contain;
             margin-bottom: 15px;
             display: none;
         }
 
         .signal-text {
-            font-size: 34px;
+            font-size: 38px;
             font-weight: 900;
             letter-spacing: 2px;
             text-transform: uppercase;
         }
 
         .action-btn { 
-            width: 100%; max-width: 320px; padding: 20px; background: var(--accent); 
-            color: #000; border: none; border-radius: 18px; 
+            width: 100%; max-width: 320px; padding: 22px; background: var(--accent); 
+            color: #000; border: none; border-radius: 20px; 
             font-weight: 900; font-size: 18px; 
-            box-shadow: 0 5px 20px rgba(152, 255, 51, 0.2);
+            box-shadow: 0 5px 25px rgba(152, 255, 51, 0.25);
+            text-transform: uppercase;
         }
 
+        .action-btn:disabled { background: #2b2f36; color: #555; box-shadow: none; }
+
         .pulse { animation: pulseAnim 1.5s infinite; border-color: var(--accent) !important; }
-        @keyframes pulseAnim { 0% { transform: scale(1); } 50% { transform: scale(0.98); opacity: 0.7; } 100% { transform: scale(1); } }
+        @keyframes pulseAnim { 0% { transform: scale(1); } 50% { transform: scale(0.97); opacity: 0.6; } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -129,13 +132,11 @@
     <!-- ЭКРАН 1: ТОРГОВЫЕ ПАРЫ -->
     <div id="screen-main" class="screen active">
         <div class="header"><span class="header-title">Торговые пары ↕</span></div>
-        <!-- Дублируем пары, чтобы можно было проверить скролл -->
-        <div class="pair-row" onclick="toTimer('EURUSD', 'EUR / USD')"><div class="flag-icon">🇪🇺</div><div class="pair-names"><span class="symbol-main">EUR / USD</span></div><button class="trade-btn-sm">Торговать</button></div>
-        <div class="pair-row" onclick="toTimer('GBPUSD', 'GBP / USD')"><div class="flag-icon">🇬🇧</div><div class="pair-names"><span class="symbol-main">GBP / USD</span></div><button class="trade-btn-sm">Торговать</button></div>
-        <div class="pair-row" onclick="toTimer('USDJPY', 'USD / JPY')"><div class="flag-icon">🇺🇸</div><div class="pair-names"><span class="symbol-main">USD / JPY</span></div><button class="trade-btn-sm">Торговать</button></div>
-        <div class="pair-row" onclick="toTimer('AUDUSD', 'AUD / USD')"><div class="flag-icon">🇦🇺</div><div class="pair-names"><span class="symbol-main">AUD / USD</span></div><button class="trade-btn-sm">Торговать</button></div>
-        <div class="pair-row" onclick="toTimer('USDCHF', 'USD / CHF')"><div class="flag-icon">🇨🇭</div><div class="pair-names"><span class="symbol-main">USD / CHF</span></div><button class="trade-btn-sm">Торговать</button></div>
-        <div class="pair-row" onclick="toTimer('USDCAD', 'USD / CAD')"><div class="flag-icon">🇨🇦</div><div class="pair-names"><span class="symbol-main">USD / CAD</span></div><button class="trade-btn-sm">Торговать</button></div>
+        <div class="pair-row" onclick="toTimer('EUR / USD')"><div class="flag-icon">🇪🇺</div><div class="pair-names"><span class="symbol-main">EUR / USD</span></div><button class="trade-btn-sm">Торговать</button></div>
+        <div class="pair-row" onclick="toTimer('GBP / USD')"><div class="flag-icon">🇬🇧</div><div class="pair-names"><span class="symbol-main">GBP / USD</span></div><button class="trade-btn-sm">Торговать</button></div>
+        <div class="pair-row" onclick="toTimer('USD / JPY')"><div class="flag-icon">🇺🇸</div><div class="pair-names"><span class="symbol-main">USD / JPY</span></div><button class="trade-btn-sm">Торговать</button></div>
+        <div class="pair-row" onclick="toTimer('AUD / USD')"><div class="flag-icon">🇦🇺</div><div class="pair-names"><span class="symbol-main">AUD / USD</span></div><button class="trade-btn-sm">Торговать</button></div>
+        <div class="pair-row" onclick="toTimer('USD / CHF')"><div class="flag-icon">🇨🇭</div><div class="pair-names"><span class="symbol-main">USD / CHF</span></div><button class="trade-btn-sm">Торговать</button></div>
     </div>
 
     <!-- ЭКРАН 2: ТАЙМЕР -->
@@ -149,8 +150,6 @@
             <div class="timer-card" onclick="toTrade('15s')"><span class="timer-val">15s</span><span class="timer-desc">Fast</span></div>
             <div class="timer-card" onclick="toTrade('30s')"><span class="timer-val">30s</span><span class="timer-desc">Stable</span></div>
             <div class="timer-card" onclick="toTrade('1m')"><span class="timer-val">1m</span><span class="timer-desc">Normal</span></div>
-            <div class="timer-card" onclick="toTrade('2m')"><span class="timer-val">2m</span><span class="timer-desc">Long</span></div>
-            <div class="timer-card" onclick="toTrade('5m')"><span class="timer-val">5m</span><span class="timer-desc">Expert</span></div>
         </div>
     </div>
 
@@ -164,8 +163,6 @@
             </div>
         </div>
 
-        <div id="chart" class="chart-box"></div>
-
         <div class="signal-area">
             <div class="status-label" id="statusLabel">Система готова</div>
             <div class="signal-card" id="sigCard">
@@ -176,24 +173,21 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.headerColor = "#181a20";
         
         let selectedPair = "";
-        let selectedSymbol = "";
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0); // При переключении экрана возвращаемся в начало страницы
+            window.scrollTo(0,0);
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        function toTimer(symbol, pairName) {
-            selectedSymbol = symbol;
+        function toTimer(pairName) {
             selectedPair = pairName;
             showScreen('screen-timer');
         }
@@ -202,17 +196,6 @@
             document.getElementById('active-pair').innerText = selectedPair;
             document.getElementById('active-timer').innerText = "АНАЛИЗ: " + time;
             showScreen('screen-trade');
-            
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": "OANDA:" + selectedSymbol,
-                "interval": "1",
-                "theme": "dark",
-                "style": "1",
-                "locale": "ru",
-                "hide_top_toolbar": true,
-                "container_id": "chart"
-            });
         }
 
         function startScan() {
@@ -224,10 +207,11 @@
 
             btn.disabled = true;
             card.classList.add('pulse');
-            status.innerText = 'Анализ рынка...';
+            status.innerText = 'Сканирование рынка...';
             icon.style.display = 'none';
             text.innerText = 'WAIT';
             text.style.color = '#fff';
+            card.style.borderColor = var(--border-color);
             
             tg.HapticFeedback.impactOccurred('heavy');
 
@@ -243,11 +227,13 @@
                     text.innerText = 'ВВЕРХ';
                     text.style.color = 'var(--success)';
                     card.style.borderColor = 'var(--success)';
+                    card.style.boxShadow = "0 10px 40px rgba(2, 192, 118, 0.4)";
                 } else {
                     icon.src = 'down.png';
                     text.innerText = 'ВНИЗ';
                     text.style.color = 'var(--danger)';
                     card.style.borderColor = 'var(--danger)';
+                    card.style.boxShadow = "0 10px 40px rgba(207, 48, 74, 0.4)";
                 }
                 tg.HapticFeedback.notificationOccurred('success');
             }, 2500);
