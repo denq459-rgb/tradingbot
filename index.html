@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AlfaBit Pro Predictor</title>
+    <title>AlfaBit AI Predictor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     
@@ -29,14 +29,27 @@
             min-height: 100vh;
         }
 
+        /* Хедер с кнопкой языка */
         .header { 
             position: sticky; top: 0; z-index: 100;
-            padding: 20px 15px; 
+            padding: 15px; 
             background: var(--card-bg); 
             border-bottom: 1px solid var(--border-color); 
-            display: flex; align-items: center; gap: 15px; 
+            display: flex; align-items: center; justify-content: space-between;
         }
-        .header-title { font-size: 13px; font-weight: 600; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.8px; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-title { font-size: 12px; font-weight: 600; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.8px; }
+        
+        .lang-btn {
+            background: #2b2f36;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
         .screen { display: none; flex-direction: column; width: 100%; min-height: 90vh; animation: fadeIn 0.2s ease; }
         .screen.active { display: flex; }
@@ -47,14 +60,14 @@
         .pair-row:active { background: #1e2126; }
         .flag-icon { font-size: 20px; margin-right: 12px; width: 32px; text-align: center; }
         .symbol-main { font-size: 16px; font-weight: bold; }
-        .trade-btn-sm { background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 800; margin-left: auto; pointer-events: none; }
+        .trade-btn-sm { background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 800; margin-left: auto; pointer-events: none; }
 
         /* Таймер */
         .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
         .timer-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 25px; border-radius: 16px; text-align: center; cursor: pointer; }
         .timer-card:active { border-color: var(--accent); transform: scale(0.96); }
         .timer-val { font-size: 26px; font-weight: 900; color: var(--accent); display: block; }
-        .timer-desc { font-size: 10px; color: var(--text-gray); text-transform: uppercase; margin-top: 6px; }
+        .timer-desc { font-size: 9px; color: var(--text-gray); text-transform: uppercase; margin-top: 6px; }
 
         /* Анализ */
         .signal-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 20px; }
@@ -73,42 +86,45 @@
         .action-btn { 
             width: 100%; max-width: 320px; padding: 22px; background: var(--accent); 
             color: #000; border: none; border-radius: 20px; 
-            font-weight: 900; font-size: 18px; text-transform: uppercase;
+            font-weight: 900; font-size: 17px; text-transform: uppercase;
         }
         .action-btn:disabled { background: #2b2f36; color: #555; }
 
         .pulse { animation: pulseAnim 1.5s infinite; border-color: var(--accent) !important; }
         @keyframes pulseAnim { 0% { transform: scale(1); } 50% { transform: scale(0.97); opacity: 0.6; } 100% { transform: scale(1); } }
 
-        /* Скрытый график */
         #chart-temp { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН 1: ТОРГОВЫЕ ПАРЫ -->
+    <!-- ХЕДЕР -->
+    <div class="header">
+        <div class="header-left">
+            <div id="back-btn" onclick="goBack()" style="display:none; color:var(--accent); cursor:pointer; font-size:20px;">❮</div>
+            <span class="header-title" id="lang-header-title">Торговые пары ↕</span>
+        </div>
+        <button class="lang-btn" onclick="toggleLang()" id="lang-toggle">EN</button>
+    </div>
+
+    <!-- ЭКРАН 1: ПАРЫ -->
     <div id="screen-main" class="screen active">
-        <div class="header"><span class="header-title">Торговые пары ↕</span></div>
         <div class="pair-row" onclick="toTimer('EURUSD', 'EUR / USD')">
-            <div class="flag-icon">🇪🇺</div><div class="pair-names"><span class="symbol-main">EUR / USD</span></div><button class="trade-btn-sm">Торговать</button>
+            <div class="flag-icon">🇪🇺</div><div class="pair-names"><span class="symbol-main">EUR / USD</span></div><button class="trade-btn-sm lang-trade-btn">ТОРГОВАТЬ</button>
         </div>
         <div class="pair-row" onclick="toTimer('GBPUSD', 'GBP / USD')">
-            <div class="flag-icon">🇬🇧</div><div class="pair-names"><span class="symbol-main">GBP / USD</span></div><button class="trade-btn-sm">Торговать</button>
+            <div class="flag-icon">🇬🇧</div><div class="pair-names"><span class="symbol-main">GBP / USD</span></div><button class="trade-btn-sm lang-trade-btn">ТОРГОВАТЬ</button>
         </div>
         <div class="pair-row" onclick="toTimer('USDJPY', 'USD / JPY')">
-            <div class="flag-icon">🇺🇸</div><div class="pair-names"><span class="symbol-main">USD / JPY</span></div><button class="trade-btn-sm">Торговать</button>
+            <div class="flag-icon">🇺🇸</div><div class="pair-names"><span class="symbol-main">USD / JPY</span></div><button class="trade-btn-sm lang-trade-btn">ТОРГОВАТЬ</button>
         </div>
         <div class="pair-row" onclick="toTimer('AUDUSD', 'AUD / USD')">
-            <div class="flag-icon">🇦🇺</div><div class="pair-names"><span class="symbol-main">AUD / USD</span></div><button class="trade-btn-sm">Торговать</button>
+            <div class="flag-icon">🇦🇺</div><div class="pair-names"><span class="symbol-main">AUD / USD</span></div><button class="trade-btn-sm lang-trade-btn">ТОРГОВАТЬ</button>
         </div>
     </div>
 
     <!-- ЭКРАН 2: ВРЕМЯ -->
     <div id="screen-timer" class="screen">
-        <div class="header">
-            <div onclick="showScreen('screen-main')" style="color:var(--accent); cursor:pointer; font-size:20px; padding-right:10px;">❮</div>
-            <span class="header-title">Время экспирации</span>
-        </div>
         <div class="timer-grid">
             <div class="timer-card" onclick="toTrade('5s')"><span class="timer-val">5s</span><span class="timer-desc">Ultra Fast</span></div>
             <div class="timer-card" onclick="toTrade('15s')"><span class="timer-val">15s</span><span class="timer-desc">Fast</span></div>
@@ -119,12 +135,9 @@
 
     <!-- ЭКРАН 3: АНАЛИЗ -->
     <div id="screen-trade" class="screen">
-        <div class="header">
-            <div onclick="showScreen('screen-timer')" style="color:var(--accent); cursor:pointer; font-size:20px; padding-right:10px;">❮</div>
-            <div style="display:flex; flex-direction:column;">
-                <span id="active-pair" style="font-size:14px; font-weight:bold;">EUR/USD</span>
-                <span id="active-timer" style="font-size:10px; color:var(--accent); font-weight:800;">АНАЛИЗ: 5s</span>
-            </div>
+        <div style="padding: 10px 15px; background: #121418; display: flex; justify-content: space-between; font-size: 11px;">
+            <span id="active-pair" style="font-weight: bold;">EUR/USD</span>
+            <span id="active-timer" style="color: var(--accent); font-weight: 800;">АНАЛИЗ: 5s</span>
         </div>
 
         <div id="chart-temp"></div>
@@ -143,86 +156,112 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        let currentLang = 'ru';
         let selectedPairName = "";
         let selectedPairSymbol = "";
+        let currentScreen = 'screen-main';
 
-        // Базовая функция переключения
-        function showScreen(screenId) {
-            // Скрываем все экраны
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            // Показываем нужный
-            const target = document.getElementById(screenId);
-            if(target) target.classList.add('active');
+        const translations = {
+            ru: {
+                headerTitle: "Торговые пары ↕",
+                headerTime: "Время экспирации",
+                headerAnalysis: "ИИ Анализ",
+                tradeBtn: "ТОРГОВАТЬ",
+                ready: "ГОТОВ",
+                wait: "АНАЛИЗ...",
+                getSignal: "ПОЛУЧИТЬ СИГНАЛ",
+                statusReady: "Система готова",
+                statusScanning: "Анализ рынка...",
+                statusDone: "Результат получен",
+                up: "ВВЕРХ",
+                down: "ВНИЗ",
+                indicator: "АНАЛИЗ: "
+            },
+            en: {
+                headerTitle: "Trading Pairs ↕",
+                headerTime: "Expiration Time",
+                headerAnalysis: "AI Analysis",
+                tradeBtn: "TRADE",
+                ready: "READY",
+                wait: "WAIT...",
+                getSignal: "GET AI SIGNAL",
+                statusReady: "System ready",
+                statusScanning: "Scanning market...",
+                statusDone: "Result obtained",
+                up: "UP",
+                down: "DOWN",
+                indicator: "ANALYSIS: "
+            }
+        };
+
+        function toggleLang() {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            document.getElementById('lang-toggle').innerText = currentLang === 'ru' ? 'EN' : 'RU';
+            updateLanguageUI();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function updateLanguageUI() {
+            const t = translations[currentLang];
             
+            // Обновляем заголовки в зависимости от экрана
+            if (currentScreen === 'screen-main') document.getElementById('lang-header-title').innerText = t.headerTitle;
+            if (currentScreen === 'screen-timer') document.getElementById('lang-header-title').innerText = t.headerTime;
+            if (currentScreen === 'screen-trade') document.getElementById('lang-header-title').innerText = t.headerAnalysis;
+
+            // Кнопки в списке
+            document.querySelectorAll('.lang-trade-btn').forEach(b => b.innerText = t.tradeBtn);
+            
+            // Экран анализа
+            document.getElementById('aiBtn').innerText = t.getSignal;
+            if (document.getElementById('sig-text').innerText === 'READY' || document.getElementById('sig-text').innerText === 'ГОТОВ') {
+                document.getElementById('sig-text').innerText = t.ready;
+            }
+            if (document.getElementById('statusLabel').innerText.includes('готов') || document.getElementById('statusLabel').innerText.includes('ready')) {
+                document.getElementById('statusLabel').innerText = t.statusReady;
+            }
+        }
+
+        function showScreen(screenId) {
+            currentScreen = screenId;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            const backBtn = document.getElementById('back-btn');
+            backBtn.style.display = screenId === 'screen-main' ? 'none' : 'block';
+            
+            updateLanguageUI();
             window.scrollTo(0, 0);
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        // Шаг 1 -> Шаг 2
+        function goBack() {
+            if (currentScreen === 'screen-trade') showScreen('screen-timer');
+            else if (currentScreen === 'screen-timer') showScreen('screen-main');
+        }
+
         function toTimer(symbol, name) {
             selectedPairSymbol = symbol;
             selectedPairName = name;
             showScreen('screen-timer');
         }
 
-        // Шаг 2 -> Шаг 3
         function toTrade(timeValue) {
             document.getElementById('active-pair').innerText = selectedPairName;
-            document.getElementById('active-timer').innerText = "АНАЛИЗ: " + timeValue;
-            
+            document.getElementById('active-timer').innerText = translations[currentLang].indicator + timeValue;
             showScreen('screen-trade');
 
-            // Технический запуск скрипта графика в фоне
             if (typeof TradingView !== 'undefined') {
                 new TradingView.widget({
-                    "autosize": true,
-                    "symbol": "OANDA:" + selectedPairSymbol,
-                    "interval": "1",
-                    "theme": "dark",
-                    "container_id": "chart-temp"
+                    "autosize": true, "symbol": "OANDA:" + selectedPairSymbol,
+                    "interval": "1", "theme": "dark", "container_id": "chart-temp"
                 });
             }
         }
 
-        // Логика кнопки анализа
         function startScan() {
             const btn = document.getElementById('aiBtn');
             const card = document.getElementById('sigCard');
             const icon = document.getElementById('sigImg');
             const text = document.getElementById('sig-text');
             const status = document.getElementById('statusLabel');
-
-            btn.disabled = true;
-            card.classList.add('pulse');
-            status.innerText = 'Анализ рынка...';
-            icon.style.display = 'none';
-            text.innerText = 'WAIT';
-            text.style.color = '#fff';
-            card.style.borderColor = "#2b2f36";
-            
-            tg.HapticFeedback.impactOccurred('heavy');
-
-            setTimeout(() => {
-                const isUp = Math.random() > 0.5;
-                btn.disabled = false;
-                card.classList.remove('pulse');
-                status.innerText = 'Результат получен';
-                icon.style.display = 'block';
-                
-                if(isUp) {
-                    icon.src = 'up.png'; 
-                    text.innerText = 'ВВЕРХ';
-                    text.style.color = '#02c076';
-                    card.style.borderColor = '#02c076';
-                } else {
-                    icon.src = 'down.png';
-                    text.innerText = 'ВНИЗ';
-                    text.style.color = '#cf304a';
-                    card.style.borderColor = '#cf304a';
-                }
-                tg.HapticFeedback.notificationOccurred('success');
-            }, 2500);
-        }
-    </script>
-</body>
-</html>
