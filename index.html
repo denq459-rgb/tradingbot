@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AlfaBit AI Predictor</title>
+    <title>AlfaBit Forex Predictor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -48,41 +48,54 @@
         }
 
         .header-title { 
-            font-size: 14px; 
+            font-size: 13px; 
             font-weight: 600; 
             color: var(--text-gray); 
             text-transform: uppercase; 
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
 
         /* --- ЭКРАН 1: ТОРГОВЫЕ ПАРЫ --- */
         .pair-row {
             display: flex;
             align-items: center;
-            padding: 14px 15px;
+            padding: 16px 15px;
             border-bottom: 1px solid var(--border-color);
         }
         .pair-row:active { background: #1e2126; }
-        .coin-icon { 
-            width: 32px; 
-            height: 32px; 
-            background: #2b2f36; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-right: 12px; 
-            font-size: 14px; 
-            font-weight: bold;
+        
+        .flag-icon { 
+            font-size: 20px;
+            margin-right: 12px;
+            width: 32px;
+            text-align: center;
         }
-        .symbol-main { font-size: 15px; font-weight: bold; }
+
+        .pair-names {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .symbol-main { font-size: 16px; font-weight: bold; }
+        
+        .tag-otc {
+            font-size: 9px;
+            background: rgba(255, 100, 0, 0.15);
+            color: #ff6400;
+            border: 1px solid #ff6400;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 8px;
+            font-weight: 900;
+        }
+
         .trade-btn-sm { 
             background: var(--accent); 
             color: #000; 
             border: none; 
-            padding: 7px 14px; 
+            padding: 8px 16px; 
             border-radius: 8px; 
-            font-size: 11px; 
+            font-size: 12px; 
             font-weight: 800; 
             margin-left: auto; 
         }
@@ -97,16 +110,16 @@
         .timer-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            padding: 20px;
+            padding: 22px;
             border-radius: 16px;
             text-align: center;
         }
-        .timer-card:active { border-color: var(--accent); transform: scale(0.95); }
-        .timer-val { font-size: 24px; font-weight: 900; color: var(--accent); display: block; }
-        .timer-desc { font-size: 10px; color: var(--text-gray); text-transform: uppercase; margin-top: 5px; }
+        .timer-card:active { border-color: var(--accent); transform: scale(0.96); }
+        .timer-val { font-size: 26px; font-weight: 900; color: var(--accent); display: block; }
+        .timer-desc { font-size: 10px; color: var(--text-gray); text-transform: uppercase; margin-top: 6px; }
 
         /* --- ЭКРАН 3: ТОРГОВЛЯ --- */
-        .chart-box { width: 100%; height: 280px; background: #000; }
+        .chart-box { width: 100%; height: 300px; background: #000; }
         .signal-area { 
             flex: 1; 
             display: flex; 
@@ -126,7 +139,7 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .action-btn { 
             width: 100%; 
@@ -137,6 +150,7 @@
             border-radius: 14px; 
             font-weight: 900; 
             font-size: 16px; 
+            box-shadow: 0 5px 15px rgba(152, 255, 51, 0.2);
         }
 
         .pulse { animation: pulseAnim 1.5s infinite; }
@@ -145,52 +159,62 @@
 </head>
 <body>
 
-    <!-- ЭКРАН 1: ТОРГОВЫЕ ПАРЫ -->
+    <!-- ЭКРАН 1: ВЫБОР ВАЛЮТНЫХ ПАР -->
     <div id="screen-main" class="screen active">
-        <div class="header"><span class="header-title">Торговые пары ↕</span></div>
-        <div class="pair-row" onclick="toTimer('BTCUSDT', 'BTC / USDT')">
-            <div class="coin-icon" style="color: #F7931A; border: 1px solid #F7931A;">₿</div>
-            <div style="display:flex; flex-direction:column;"><span class="symbol-main">BTC / USDT</span><span style="font-size:10px; color:var(--text-gray);">Bitcoin</span></div>
+        <div class="header"><span class="header-title">Валютные пары ↕</span></div>
+        
+        <div class="pair-row" onclick="toTimer('EURUSD', 'EUR / USD')">
+            <div class="flag-icon">🇪🇺</div>
+            <div class="pair-names"><span class="symbol-main">EUR / USD</span></div>
+            <span class="tag-otc">OTC</span>
             <button class="trade-btn-sm">Торговать</button>
         </div>
-        <div class="pair-row" onclick="toTimer('ETHUSDT', 'ETH / USDT')">
-            <div class="coin-icon" style="color: #627EEA; border: 1px solid #627EEA;">Ξ</div>
-            <div style="display:flex; flex-direction:column;"><span class="symbol-main">ETH / USDT</span><span style="font-size:10px; color:var(--text-gray);">Ethereum</span></div>
+
+        <div class="pair-row" onclick="toTimer('GBPUSD', 'GBP / USD')">
+            <div class="flag-icon">🇬🇧</div>
+            <div class="pair-names"><span class="symbol-main">GBP / USD</span></div>
+            <span class="tag-otc">OTC</span>
             <button class="trade-btn-sm">Торговать</button>
         </div>
-        <div class="pair-row" onclick="toTimer('TONUSDT', 'TON / USDT')">
-            <div class="coin-icon" style="color: #0088CC; border: 1px solid #0088CC;">T</div>
-            <div style="display:flex; flex-direction:column;"><span class="symbol-main">TON / USDT</span><span style="font-size:10px; color:var(--text-gray);">Toncoin</span></div>
+
+        <div class="pair-row" onclick="toTimer('USDJPY', 'USD / JPY')">
+            <div class="flag-icon">🇺🇸</div>
+            <div class="pair-names"><span class="symbol-main">USD / JPY</span></div>
             <button class="trade-btn-sm">Торговать</button>
         </div>
-        <div class="pair-row" onclick="toTimer('NOTUSDT', 'NOT / USDT')">
-            <div class="coin-icon" style="color: #ffffff; border: 1px solid #ffffff;">N</div>
-            <div style="display:flex; flex-direction:column;"><span class="symbol-main">NOT / USDT</span><span style="font-size:10px; color:var(--text-gray);">Notcoin</span></div>
+
+        <div class="pair-row" onclick="toTimer('AUDUSD', 'AUD / USD')">
+            <div class="flag-icon">🇦🇺</div>
+            <div class="pair-names"><span class="symbol-main">AUD / USD</span></div>
+            <span class="tag-otc">OTC</span>
             <button class="trade-btn-sm">Торговать</button>
         </div>
-        <div class="pair-row" onclick="toTimer('SOLUSDT', 'SOL / USDT')">
-            <div class="coin-icon" style="color: #14F195; border: 1px solid #14F195;">S</div>
-            <div style="display:flex; flex-direction:column;"><span class="symbol-main">SOL / USDT</span><span style="font-size:10px; color:var(--text-gray);">Solana</span></div>
+
+        <div class="pair-row" onclick="toTimer('USDCHF', 'USD / CHF')">
+            <div class="flag-icon">🇨🇭</div>
+            <div class="pair-names"><span class="symbol-main">USD / CHF</span></div>
             <button class="trade-btn-sm">Торговать</button>
         </div>
-        <div class="pair-row" onclick="toTimer('DOGEUSDT', 'DOGE / USDT')">
-            <div class="coin-icon" style="color: #BA9F33; border: 1px solid #BA9F33;">Ð</div>
-            <div style="display:flex; flex-direction:column;"><span class="symbol-main">DOGE / USDT</span><span style="font-size:10px; color:var(--text-gray);">Dogecoin</span></div>
+
+        <div class="pair-row" onclick="toTimer('EURGBP', 'EUR / GBP')">
+            <div class="flag-icon">🇪🇺</div>
+            <div class="pair-names"><span class="symbol-main">EUR / GBP</span></div>
+            <span class="tag-otc">OTC</span>
             <button class="trade-btn-sm">Торговать</button>
         </div>
     </div>
 
-    <!-- ЭКРАН 2: ТАЙМЕР -->
+    <!-- ЭКРАН 2: ВЫБОР ТАЙМЕРА -->
     <div id="screen-timer" class="screen">
         <div class="header">
             <div onclick="showScreen('screen-main')" style="color:var(--accent); cursor:pointer; font-size:20px;">❮</div>
-            <span class="header-title">Время анализа</span>
+            <span class="header-title">Время экспирации</span>
         </div>
         <div class="timer-grid">
             <div class="timer-card" onclick="toTrade('5s')"><span class="timer-val">5s</span><span class="timer-desc">Ultra Fast</span></div>
             <div class="timer-card" onclick="toTrade('15s')"><span class="timer-val">15s</span><span class="timer-desc">Fast</span></div>
             <div class="timer-card" onclick="toTrade('30s')"><span class="timer-val">30s</span><span class="timer-desc">Stable</span></div>
-            <div class="timer-card" onclick="toTrade('1m')"><span class="timer-val">1m</span><span class="timer-desc">Medium</span></div>
+            <div class="timer-card" onclick="toTrade('1m')"><span class="timer-val">1m</span><span class="timer-desc">Normal</span></div>
         </div>
     </div>
 
@@ -199,8 +223,8 @@
         <div class="header">
             <div onclick="showScreen('screen-timer')" style="color:var(--accent); cursor:pointer; font-size:20px;">❮</div>
             <div style="display:flex; flex-direction:column;">
-                <span id="active-pair" style="font-size:14px; font-weight:bold;">BTC/USDT</span>
-                <span id="active-timer" style="font-size:10px; color:var(--accent); font-weight:800;">ИНДИКАТОР: 5s</span>
+                <span id="active-pair" style="font-size:14px; font-weight:bold;">EUR/USD</span>
+                <span id="active-timer" style="font-size:10px; color:var(--accent); font-weight:800;">АНАЛИЗ: 5s</span>
             </div>
         </div>
 
@@ -208,7 +232,7 @@
 
         <div class="signal-area">
             <div class="hexagon" id="sigBox">
-                <div id="sig-icon" style="font-size:30px;">📡</div>
+                <div id="sig-icon" style="font-size:32px;">📡</div>
                 <div id="sig-text" style="font-weight:900; margin-top:5px; letter-spacing:1px;">READY</div>
             </div>
             <button class="action-btn" id="aiBtn" onclick="startScan()">ПОЛУЧИТЬ СИГНАЛ</button>
@@ -238,12 +262,12 @@
 
         function toTrade(time) {
             document.getElementById('active-pair').innerText = selectedPair;
-            document.getElementById('active-timer').innerText = "ИНДИКАТОР: " + time;
+            document.getElementById('active-timer').innerText = "АНАЛИЗ: " + time;
             showScreen('screen-trade');
             
             new TradingView.widget({
                 "autosize": true,
-                "symbol": "BINANCE:" + selectedSymbol,
+                "symbol": "OANDA:" + selectedSymbol,
                 "interval": "1",
                 "theme": "dark",
                 "style": "1",
