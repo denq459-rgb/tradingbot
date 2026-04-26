@@ -23,7 +23,6 @@
             color: var(--text-main);
             font-family: 'Inter', -apple-system, sans-serif;
             margin: 0; padding: 0;
-            /* Исправлено: разрешаем прокрутку */
             overflow-x: hidden;
             overflow-y: auto;
             min-height: 100vh;
@@ -31,7 +30,6 @@
             flex-direction: column;
         }
 
-        /* --- HEADER --- */
         .app-header {
             padding: 25px 15px 15px;
             text-align: center;
@@ -60,11 +58,9 @@
         .steps-bar span.active { color: var(--text-main); display: flex; align-items: center; gap: 6px; }
         .steps-bar span.active::before { content: '●'; color: var(--accent); }
 
-        /* --- CONTENT --- */
         .content { 
             flex: 1; 
             padding: 20px 15px;
-            /* Исправлено: добавляем большой отступ снизу, чтобы скролл работал */
             padding-bottom: 120px; 
         }
         
@@ -72,7 +68,6 @@
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* UPLOAD AREA */
         .upload-area {
             border: 2px dashed var(--border);
             border-radius: 24px;
@@ -87,7 +82,6 @@
         .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; }
         .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; }
 
-        /* RESULT CARD */
         .result-card { 
             background: var(--card-bg); 
             border-radius: 28px; 
@@ -109,7 +103,6 @@
         .analysis-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: var(--text-gray); }
         .analysis-item b { color: #fff; }
 
-        /* BUTTONS */
         .btn-main {
             width: 100%;
             padding: 22px;
@@ -123,7 +116,7 @@
             text-transform: uppercase;
             box-shadow: 0 5px 20px rgba(0, 242, 129, 0.3);
             transition: 0.2s;
-            margin-bottom: 20px; /* Отступ между кнопками */
+            margin-bottom: 20px;
         }
         .btn-main:active { transform: scale(0.98); }
         .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
@@ -134,16 +127,10 @@
             cursor: pointer; margin: 10px auto 0; display: block;
         }
 
-        /* NAVBAR */
         .nav-bar {
-            position: fixed; 
-            bottom: 0; 
-            width: 100%;
-            background: #11151e; 
-            border-top: 1px solid var(--border);
-            padding: 15px 0 35px 0; 
-            text-align: center;
-            z-index: 1000;
+            position: fixed; bottom: 0; width: 100%;
+            background: #11151e; border-top: 1px solid var(--border);
+            padding: 15px 0 35px 0; text-align: center; z-index: 1000;
         }
         .nav-item { color: var(--accent); font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -162,29 +149,22 @@
     </div>
 
     <div class="content">
-        <!-- ЭКРАН 1: ЗАГРУЗКА -->
         <div id="screen-upload" class="screen active">
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <div id="placeholder">
                     <div style="font-size: 55px; margin-bottom: 20px;">🖼️</div>
                     <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
-                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI detects momentum shifts and reversals</div>
+                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI detects momentum shifts and pressure</div>
                 </div>
                 <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
-            
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
-            
-            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">
-                Start Neural Scan
-            </button>
-            
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">Start Neural Scan</button>
             <button class="lang-btn" onclick="window.toggleLang()">RU / EN</button>
         </div>
 
-        <!-- ЭКРАН 2: РЕЗУЛЬТАТ -->
         <div id="screen-result" class="screen">
             <div class="result-card" id="resBorder">
                 <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px;" id="t-res-label">KRYON AI ULTRA ANALYZER</div>
@@ -192,22 +172,18 @@
                 <div id="resAccuracy" style="font-size: 20px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
                 
                 <div class="analysis-box">
-                    <div class="analysis-item"><span id="t-an-status">Trend Logic:</span> <b id="trend-status">---</b></div>
-                    <div class="analysis-item"><span id="t-an-impulse">Momentum:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span id="t-an-status">Logic:</span> <b id="trend-status">---</b></div>
+                    <div class="analysis-item"><span id="t-an-impulse">Pressure:</span> <b id="impulse-power">---</b></div>
                     <div class="analysis-item"><span id="t-an-time">Rec. Time:</span> <b id="rec-time">---</b></div>
                 </div>
             </div>
-            
-            <!-- Исправлено: Кнопка теперь видна благодаря скроллу и паддингу -->
             <button class="btn-main" style="background: #232a35; color: #fff;" onclick="window.resetApp()">
                 <span id="t-btn-new">New Analysis</span>
             </button>
         </div>
     </div>
 
-    <div class="nav-bar">
-        <div class="nav-item">⚡ Signals Active</div>
-    </div>
+    <div class="nav-bar"><div class="nav-item">⚡ Signals Active</div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -220,22 +196,24 @@
 
         const trans = {
             ru: {
-                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ ищет смену импульса и развороты",
+                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ ищет ложные пробои и давление тренда",
                 btn_scan: "Начать анализ", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Логика:", an_i: "Импульс:", an_t: "Время:",
+                an_s: "Логика:", an_i: "Давление:", an_t: "Время:",
                 btn_new: "Новый анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
                 following: "По тренду", reversal: "РАЗВОРОТ (Отскок)",
-                stable: "Стабильный", shifting: "СМЕНА СИЛ",
-                log1: "> Считывание пикселей...", log2: "> Анализ зон...", log3: "> Поиск уровней...", log4: "> Проверка импульса...", log5: "> Итоговый расчет..."
+                fake_rev: "ЛОЖНЫЙ ОТСКОК (Высокое давление)",
+                stable: "Стабильное", shifting: "СМЕНА СИЛ", high_p: "КРИТИЧЕСКОЕ",
+                log1: "> Считывание пикселей...", log2: "> Анализ зон...", log3: "> Поиск уровней...", log4: "> Проверка давления...", log5: "> Итоговый расчет..."
             },
             en: {
-                up_t: "UPLOAD SCREENSHOT", up_d: "AI detects momentum shifts and reversals",
+                up_t: "UPLOAD SCREENSHOT", up_d: "AI detects fakeouts and global pressure",
                 btn_scan: "Start Neural Scan", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Trend Logic:", an_i: "Momentum:", an_t: "Rec. Time:",
+                an_s: "Logic:", an_i: "Pressure:", an_t: "Rec. Time:",
                 btn_new: "New Analysis", up: "CALL 🟢", down: "PUT 🔴",
                 following: "Trend Following", reversal: "REVERSAL (Bounce)",
-                stable: "Stable", shifting: "SHIFT DETECTED",
-                log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Momentum check...", log5: "> Finalizing..."
+                fake_rev: "FAKE REVERSAL (High Pressure)",
+                stable: "Stable", shifting: "SHIFT DETECTED", high_p: "HIGH PRESSURE",
+                log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Pressure check...", log5: "> Finalizing..."
             }
         };
 
@@ -265,7 +243,6 @@
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
                     document.getElementById('visionBtn').style.display = 'block';
-                    tg.HapticFeedback.impactOccurred('medium');
                 };
                 img.src = e.target.result;
             };
@@ -281,9 +258,8 @@
             btn.disabled = true; line.style.display = 'block'; log.style.display = 'block'; log.innerHTML = "";
             tg.HapticFeedback.impactOccurred('medium');
 
-            const logSteps = [t.log1, t.log2, t.log3, t.log4, t.log5];
-            for (let i = 0; i < logSteps.length; i++) {
-                log.innerHTML += logSteps[i] + "<br>";
+            for (let i = 1; i <= 5; i++) {
+                log.innerHTML += t['log' + i] + "<br>";
                 line.style.top = (i * 20) + "%";
                 tg.HapticFeedback.selectionChanged();
                 await new Promise(r => setTimeout(r, 600));
@@ -303,30 +279,48 @@
                 return {g, r};
             }
 
-            const nP = count(nearPastData), sP = count(signalData);
+            const hP = count(historyData), nP = count(nearPastData), sP = count(signalData);
+
+            // НОВАЯ ЛОГИКА СТРОГОГО ДАВЛЕНИЯ
+            const bearPressure = hP.r / (hP.g || 1); // Давление медведей
             const isReversalUp = (nP.r > nP.g * 1.4) && (sP.g > sP.r * 1.15);
             const isReversalDown = (nP.g > nP.r * 1.4) && (sP.r > sP.g * 1.15);
-
-            document.getElementById('screen-upload').classList.remove('active');
-            document.getElementById('screen-result').classList.add('active');
-            
-            // Скроллим вверх при переходе, чтобы видеть результат
-            window.scrollTo(0, 0);
 
             let isUp = sP.g > sP.r;
             let status = t.following;
             let impulse = t.stable;
             let recTime = "5 - 10 MIN";
 
-            if (isReversalUp) { isUp = true; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN"; }
-            else if (isReversalDown) { isUp = false; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN"; }
+            // Применяем проверку давления к развороту вверх (как на вашем скрине)
+            if (isReversalUp) {
+                if (bearPressure > 3.0) {
+                    isUp = false; // Сигнал на понижение (PUT), потому что тренд слишком сильный
+                    status = t.fake_rev;
+                    impulse = t.high_p;
+                    recTime = "1 - 2 MIN";
+                } else {
+                    isUp = true;
+                    status = t.reversal;
+                    impulse = t.shifting;
+                    recTime = "1 - 3 MIN";
+                }
+            } else if (isReversalDown) {
+                isUp = false;
+                status = t.reversal;
+                impulse = t.shifting;
+                recTime = "1 - 3 MIN";
+            }
+
+            document.getElementById('screen-upload').classList.remove('active');
+            document.getElementById('screen-result').classList.add('active');
+            window.scrollTo(0, 0);
 
             const resS = document.getElementById('resSignal');
             resS.innerText = isUp ? t.up : t.down;
             resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
             document.getElementById('resBorder').style.borderColor = resS.style.color;
             document.getElementById('trend-status').innerText = status;
-            document.getElementById('trend-status').style.color = (isReversalUp || isReversalDown) ? "var(--warning)" : "var(--accent)";
+            document.getElementById('trend-status').style.color = (status === t.reversal || status === t.fake_rev) ? "var(--warning)" : "var(--accent)";
             document.getElementById('impulse-power').innerText = impulse;
             document.getElementById('rec-time').innerText = recTime;
             document.getElementById('resAccuracy').innerText = "Confidence: " + (65 + Math.random()*22).toFixed(1) + "%";
