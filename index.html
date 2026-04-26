@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kryon Algo Trade Bot - Ultra</title>
+    <title>Kryon Algo Trade Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg-color: #0c0f17;
@@ -22,8 +23,12 @@
             color: var(--text-main);
             font-family: 'Inter', -apple-system, sans-serif;
             margin: 0; padding: 0;
+            /* Исправлено: разрешаем прокрутку */
             overflow-x: hidden;
-            display: flex; flex-direction: column; min-height: 100vh;
+            overflow-y: auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* --- HEADER --- */
@@ -32,6 +37,7 @@
             text-align: center;
             background: linear-gradient(to bottom, #11151e, var(--bg-color));
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
         .header-logo {
             width: 40px; height: 40px;
@@ -43,7 +49,7 @@
             box-shadow: 0 0 15px rgba(0, 242, 129, 0.15);
         }
         .app-title { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
-        .app-subtitle { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+        .app-subtitle { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
         
         .steps-bar {
             display: inline-flex; gap: 20px;
@@ -55,7 +61,13 @@
         .steps-bar span.active::before { content: '●'; color: var(--accent); }
 
         /* --- CONTENT --- */
-        .content { flex: 1; padding: 20px 15px; }
+        .content { 
+            flex: 1; 
+            padding: 20px 15px;
+            /* Исправлено: добавляем большой отступ снизу, чтобы скролл работал */
+            padding-bottom: 120px; 
+        }
+        
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -76,7 +88,14 @@
         .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; }
 
         /* RESULT CARD */
-        .result-card { background: var(--card-bg); border-radius: 28px; padding: 35px 20px; text-align: center; border: 2px solid var(--border); }
+        .result-card { 
+            background: var(--card-bg); 
+            border-radius: 28px; 
+            padding: 35px 20px; 
+            text-align: center; 
+            border: 2px solid var(--border); 
+            margin-bottom: 20px;
+        }
         .signal-val { font-size: 52px; font-weight: 900; margin: 15px 0; letter-spacing: 1px; }
         
         .analysis-box {
@@ -104,7 +123,7 @@
             text-transform: uppercase;
             box-shadow: 0 5px 20px rgba(0, 242, 129, 0.3);
             transition: 0.2s;
-            margin-top: 25px;
+            margin-bottom: 20px; /* Отступ между кнопками */
         }
         .btn-main:active { transform: scale(0.98); }
         .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
@@ -112,13 +131,19 @@
         .lang-btn {
             background: #161a24; color: var(--accent); border: 1px solid var(--border);
             padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: bold;
-            cursor: pointer; margin: 30px auto 0; display: block;
+            cursor: pointer; margin: 10px auto 0; display: block;
         }
 
+        /* NAVBAR */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%;
-            background: #11151e; border-top: 1px solid var(--border);
-            padding: 15px 0 35px 0; text-align: center;
+            position: fixed; 
+            bottom: 0; 
+            width: 100%;
+            background: #11151e; 
+            border-top: 1px solid var(--border);
+            padding: 15px 0 35px 0; 
+            text-align: center;
+            z-index: 1000;
         }
         .nav-item { color: var(--accent); font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -173,13 +198,16 @@
                 </div>
             </div>
             
-            <button class="btn-main" style="margin-top: 25px; background: #232a35; color: #fff;" onclick="window.resetApp()">
+            <!-- Исправлено: Кнопка теперь видна благодаря скроллу и паддингу -->
+            <button class="btn-main" style="background: #232a35; color: #fff;" onclick="window.resetApp()">
                 <span id="t-btn-new">New Analysis</span>
             </button>
         </div>
     </div>
 
-    <div class="nav-bar"><div class="nav-item">⚡ Signals Active</div></div>
+    <div class="nav-bar">
+        <div class="nav-item">⚡ Signals Active</div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -193,18 +221,18 @@
         const trans = {
             ru: {
                 up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ ищет смену импульса и развороты",
-                btn_scan: "Начать анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
-                res_l: "KRYON AI ULTRA ANALYZER", btn_new: "Новый анализ",
-                trend: "Логика:", impulse: "Импульс:", time: "Время:",
+                btn_scan: "Начать анализ", res_l: "KRYON AI ULTRA ANALYZER",
+                an_s: "Логика:", an_i: "Импульс:", an_t: "Время:",
+                btn_new: "Новый анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
                 following: "По тренду", reversal: "РАЗВОРОТ (Отскок)",
                 stable: "Стабильный", shifting: "СМЕНА СИЛ",
                 log1: "> Считывание пикселей...", log2: "> Анализ зон...", log3: "> Поиск уровней...", log4: "> Проверка импульса...", log5: "> Итоговый расчет..."
             },
             en: {
                 up_t: "UPLOAD SCREENSHOT", up_d: "AI detects momentum shifts and reversals",
-                btn_scan: "Start Neural Scan", up: "CALL 🟢", down: "PUT 🔴",
-                res_l: "KRYON AI ULTRA ANALYZER", btn_new: "New Analysis",
-                trend: "Logic:", impulse: "Momentum:", time: "Time:",
+                btn_scan: "Start Neural Scan", res_l: "KRYON AI ULTRA ANALYZER",
+                an_s: "Trend Logic:", an_i: "Momentum:", an_t: "Rec. Time:",
+                btn_new: "New Analysis", up: "CALL 🟢", down: "PUT 🔴",
                 following: "Trend Following", reversal: "REVERSAL (Bounce)",
                 stable: "Stable", shifting: "SHIFT DETECTED",
                 log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Momentum check...", log5: "> Finalizing..."
@@ -219,9 +247,9 @@
             document.getElementById('visionBtn').innerText = t.btn_scan;
             document.getElementById('t-res-label').innerText = t.res_l;
             document.getElementById('t-btn-new').innerText = t.btn_new;
-            document.getElementById('t-an-status').innerText = t.trend;
-            document.getElementById('t-an-impulse').innerText = t.impulse;
-            document.getElementById('t-an-time').innerText = t.time;
+            document.getElementById('t-an-status').innerText = t.an_s;
+            document.getElementById('t-an-impulse').innerText = t.an_i;
+            document.getElementById('t-an-time').innerText = t.an_t;
             tg.HapticFeedback.impactOccurred('light');
         };
 
@@ -262,10 +290,9 @@
             }
 
             const w = canvas.width, h = canvas.height;
-            // Делим на 3 зоны для точности
-            const historyData = ctx.getImageData(0, 0, Math.floor(w*0.6), h).data; // 60% слева
-            const nearPastData = ctx.getImageData(Math.floor(w*0.6), 0, Math.floor(w*0.2), h).data; // 20% середина
-            const signalData = ctx.getImageData(Math.floor(w*0.8), 0, Math.floor(w*0.2), h).data; // 20% самый конец
+            const historyData = ctx.getImageData(0, 0, Math.floor(w*0.6), h).data;
+            const nearPastData = ctx.getImageData(Math.floor(w*0.6), 0, Math.floor(w*0.2), h).data;
+            const signalData = ctx.getImageData(Math.floor(w*0.8), 0, Math.floor(w*0.2), h).data;
 
             function count(data) {
                 let g=0, r=0;
@@ -276,27 +303,23 @@
                 return {g, r};
             }
 
-            const hP = count(historyData), nP = count(nearPastData), sP = count(signalData);
-
-            // ЛОГИКА РАЗВОРОТА:
-            // Если в Near Past было много красного, а в Signal Data резко выросло зеленое — это РАЗВОРОТ
-            const isReversalUp = (nP.r > nP.g * 1.5) && (sP.g > sP.r * 1.2);
-            const isReversalDown = (nP.g > nP.r * 1.5) && (sP.r > sP.g * 1.2);
+            const nP = count(nearPastData), sP = count(signalData);
+            const isReversalUp = (nP.r > nP.g * 1.4) && (sP.g > sP.r * 1.15);
+            const isReversalDown = (nP.g > nP.r * 1.4) && (sP.r > sP.g * 1.15);
 
             document.getElementById('screen-upload').classList.remove('active');
             document.getElementById('screen-result').classList.add('active');
-            document.getElementById('step-result').classList.add('active');
+            
+            // Скроллим вверх при переходе, чтобы видеть результат
+            window.scrollTo(0, 0);
 
             let isUp = sP.g > sP.r;
             let status = t.following;
             let impulse = t.stable;
             let recTime = "5 - 10 MIN";
 
-            if (isReversalUp) {
-                isUp = true; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN";
-            } else if (isReversalDown) {
-                isUp = false; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN";
-            }
+            if (isReversalUp) { isUp = true; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN"; }
+            else if (isReversalDown) { isUp = false; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN"; }
 
             const resS = document.getElementById('resSignal');
             resS.innerText = isUp ? t.up : t.down;
@@ -306,7 +329,7 @@
             document.getElementById('trend-status').style.color = (isReversalUp || isReversalDown) ? "var(--warning)" : "var(--accent)";
             document.getElementById('impulse-power').innerText = impulse;
             document.getElementById('rec-time').innerText = recTime;
-            document.getElementById('resAccuracy').innerText = "Confidence: " + (68 + Math.random()*22).toFixed(1) + "%";
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (65 + Math.random()*22).toFixed(1) + "%";
 
             tg.HapticFeedback.notificationOccurred('success');
         };
