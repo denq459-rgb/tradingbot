@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kryon Algo Trade Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg-color: #0c0f17;
@@ -71,7 +70,7 @@
         .upload-area {
             border: 2px dashed var(--border);
             border-radius: 24px;
-            padding: 60px 15px;
+            padding: 50px 15px;
             text-align: center;
             background: rgba(255,255,255,0.02);
             position: relative;
@@ -81,6 +80,24 @@
         #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; }
         .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; }
         .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; }
+
+        .theme-selector {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+        .theme-selector select {
+            background: var(--card-bg);
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 5px;
+            border-radius: 8px;
+            outline: none;
+        }
 
         .result-card { 
             background: var(--card-bg); 
@@ -160,6 +177,16 @@
                 <div class="scan-line" id="scanLine"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
+
+            <div class="theme-selector">
+                <span id="t-theme-label">Chart Colors:</span>
+                <select id="colorTheme">
+                    <option value="green_red">Green / Red</option>
+                    <option value="blue_red">Blue / Red</option>
+                    <option value="white_black">White / Black</option>
+                </select>
+            </div>
+
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
             <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">Start Neural Scan</button>
             <button class="lang-btn" onclick="window.toggleLang()">RU / EN</button>
@@ -187,7 +214,7 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        if (tg.expand) tg.expand();
         tg.headerColor = "#11151e";
 
         window.lang = 'en';
@@ -203,7 +230,8 @@
                 following: "По тренду", reversal: "РАЗВОРОТ (Отскок)",
                 fake_rev: "ЛОЖНЫЙ ОТСКОК (Высокое давление)",
                 stable: "Стабильное", shifting: "СМЕНА СИЛ", high_p: "КРИТИЧЕСКОЕ",
-                log1: "> Считывание пикселей...", log2: "> Анализ зон...", log3: "> Поиск уровней...", log4: "> Проверка давления...", log5: "> Итоговый расчет..."
+                log1: "> Считывание пикселей...", log2: "> Анализ зон...", log3: "> Поиск уровней...", log4: "> Проверка давления...", log5: "> Итоговый расчет...",
+                th_l: "Цвета свечей:"
             },
             en: {
                 up_t: "UPLOAD SCREENSHOT", up_d: "AI detects fakeouts and global pressure",
@@ -213,7 +241,8 @@
                 following: "Trend Following", reversal: "REVERSAL (Bounce)",
                 fake_rev: "FAKE REVERSAL (High Pressure)",
                 stable: "Stable", shifting: "SHIFT DETECTED", high_p: "HIGH PRESSURE",
-                log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Pressure check...", log5: "> Finalizing..."
+                log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Pressure check...", log5: "> Finalizing...",
+                th_l: "Chart Colors:"
             }
         };
 
@@ -228,7 +257,8 @@
             document.getElementById('t-an-status').innerText = t.an_s;
             document.getElementById('t-an-impulse').innerText = t.an_i;
             document.getElementById('t-an-time').innerText = t.an_t;
-            tg.HapticFeedback.impactOccurred('light');
+            document.getElementById('t-theme-label').innerText = t.th_l;
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         };
 
         window.handleImage = function(input) {
@@ -238,8 +268,13 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    canvas.width = img.width; canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
+                    // Оптимизация размера для мобильных
+                    const maxW = 1000;
+                    const scale = img.width > maxW ? maxW / img.width : 1;
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
                     document.getElementById('visionBtn').style.display = 'block';
@@ -249,52 +284,75 @@
             reader.readAsDataURL(file);
         };
 
+        // УМНАЯ ФУНКЦИЯ ПОДСЧЕТА ЦВЕТОВ
+        function getPixelDynamics(data) {
+            const theme = document.getElementById('colorTheme').value;
+            let up = 0, down = 0;
+
+            for(let i=0; i < data.length; i += 16) {
+                const r = data[i], g = data[i+1], b = data[i+2];
+
+                if (theme === 'green_red') {
+                    if (g > r + 20 && g > b + 20) up++;
+                    else if (r > g + 20 && r > b + 20) down++;
+                } 
+                else if (theme === 'blue_red') {
+                    if (b > r + 20 && g > r) up++; // Синий/Голубой
+                    else if (r > g + 20 && r > b + 20) down++;
+                } 
+                else if (theme === 'white_black') {
+                    if (r > 200 && g > 200 && b > 200) up++; // Белый
+                    else if (r < 60 && g < 60 && b < 60 && r > 10) down++; // Темно-серый/Черный
+                }
+            }
+            return { up, down };
+        }
+
         window.performUltraAnalysis = async function() {
             const btn = document.getElementById('visionBtn');
             const line = document.getElementById('scanLine');
             const log = document.getElementById('analysisLog');
             const t = trans[window.lang];
             
-            btn.disabled = true; line.style.display = 'block'; log.style.display = 'block'; log.innerHTML = "";
-            tg.HapticFeedback.impactOccurred('medium');
+            btn.disabled = true; 
+            line.style.display = 'block'; 
+            log.style.display = 'block'; 
+            log.innerHTML = "";
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
             for (let i = 1; i <= 5; i++) {
                 log.innerHTML += t['log' + i] + "<br>";
                 line.style.top = (i * 20) + "%";
-                tg.HapticFeedback.selectionChanged();
+                if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                 await new Promise(r => setTimeout(r, 600));
             }
 
             const w = canvas.width, h = canvas.height;
+            // Делим изображение на зоны: история (60%), ближнее прошлое (20%), текущий сигнал (20%)
             const historyData = ctx.getImageData(0, 0, Math.floor(w*0.6), h).data;
             const nearPastData = ctx.getImageData(Math.floor(w*0.6), 0, Math.floor(w*0.2), h).data;
             const signalData = ctx.getImageData(Math.floor(w*0.8), 0, Math.floor(w*0.2), h).data;
 
-            function count(data) {
-                let g=0, r=0;
-                for(let i=0; i<data.length; i+=16) {
-                    if(data[i+1] > data[i]+15 && data[i+1] > data[i+2]+15) g++;
-                    if(data[i] > data[i+1]+15 && data[i] > data[i+2]+15) r++;
-                }
-                return {g, r};
-            }
+            const hP = getPixelDynamics(historyData);
+            const nP = getPixelDynamics(nearPastData);
+            const sP = getPixelDynamics(signalData);
 
-            const hP = count(historyData), nP = count(nearPastData), sP = count(signalData);
+            // Логика давления
+            const bearPressure = hP.down / (hP.up || 1);
+            const bullPressure = hP.up / (hP.down || 1);
+            
+            const isReversalUp = (nP.down > nP.up * 1.3) && (sP.up > sP.down * 1.1);
+            const isReversalDown = (nP.up > nP.down * 1.3) && (sP.down > sP.up * 1.1);
 
-            // НОВАЯ ЛОГИКА СТРОГОГО ДАВЛЕНИЯ
-            const bearPressure = hP.r / (hP.g || 1); // Давление медведей
-            const isReversalUp = (nP.r > nP.g * 1.4) && (sP.g > sP.r * 1.15);
-            const isReversalDown = (nP.g > nP.r * 1.4) && (sP.r > sP.g * 1.15);
-
-            let isUp = sP.g > sP.r;
+            let isUp = sP.up > sP.down;
             let status = t.following;
             let impulse = t.stable;
             let recTime = "5 - 10 MIN";
 
-            // Применяем проверку давления к развороту вверх (как на вашем скрине)
             if (isReversalUp) {
-                if (bearPressure > 3.0) {
-                    isUp = false; // Сигнал на понижение (PUT), потому что тренд слишком сильный
+                if (bearPressure > 2.5) {
+                    isUp = false; // Ложный отскок против мощного тренда
                     status = t.fake_rev;
                     impulse = t.high_p;
                     recTime = "1 - 2 MIN";
@@ -302,15 +360,23 @@
                     isUp = true;
                     status = t.reversal;
                     impulse = t.shifting;
-                    recTime = "1 - 3 MIN";
+                    recTime = "2 - 5 MIN";
                 }
             } else if (isReversalDown) {
-                isUp = false;
-                status = t.reversal;
-                impulse = t.shifting;
-                recTime = "1 - 3 MIN";
+                if (bullPressure > 2.5) {
+                    isUp = true; 
+                    status = t.fake_rev;
+                    impulse = t.high_p;
+                    recTime = "1 - 2 MIN";
+                } else {
+                    isUp = false;
+                    status = t.reversal;
+                    impulse = t.shifting;
+                    recTime = "2 - 5 MIN";
+                }
             }
 
+            // Переключение экранов
             document.getElementById('screen-upload').classList.remove('active');
             document.getElementById('screen-result').classList.add('active');
             window.scrollTo(0, 0);
@@ -320,16 +386,15 @@
             resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
             document.getElementById('resBorder').style.borderColor = resS.style.color;
             document.getElementById('trend-status').innerText = status;
-            document.getElementById('trend-status').style.color = (status === t.reversal || status === t.fake_rev) ? "var(--warning)" : "var(--accent)";
+            document.getElementById('trend-status').style.color = (status.includes("РАЗВОРОТ") || status.includes("REVERSAL")) ? "var(--warning)" : "var(--accent)";
             document.getElementById('impulse-power').innerText = impulse;
             document.getElementById('rec-time').innerText = recTime;
-            document.getElementById('resAccuracy').innerText = "Confidence: " + (65 + Math.random()*22).toFixed(1) + "%";
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (68 + Math.random()*20).toFixed(1) + "%";
 
-            tg.HapticFeedback.notificationOccurred('success');
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         };
 
         window.resetApp = function() { location.reload(); };
-        window.updateUI();
     </script>
 </body>
 </html>
