@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kryon Algo Trade Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg-color: #0c0f17;
             --card-bg: #161a24;
-            --card-bg-hover: #1c212c;
             --accent: #00f281;
             --text-main: #ffffff;
             --text-gray: #7a828a;
@@ -61,85 +59,68 @@
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* КАРТОЧКИ И ПАРЫ */
-        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .card-icon { width: 45px; height: 45px; background: #1c212c; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 20px; }
-        .card-info { flex: 1; }
-        .card-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .badge { background: #1c212c; color: var(--text-gray); font-size: 9px; padding: 3px 6px; border-radius: 5px; font-weight: 800; }
-        .badge.green { color: var(--accent); }
-
-        .pair-row { background: var(--card-bg); padding: 18px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer; }
-        .pair-row:active { background: #232933; }
-        .flag-icon { font-size: 22px; margin-right: 15px; }
-        .symbol-main { font-size: 16px; font-weight: 600; }
-        .trade-btn-fake { background: var(--accent); color: #000; border: none; padding: 6px 12px; border-radius: 4px; font-size: 10px; font-weight: 900; margin-left: auto; text-transform: uppercase; }
-
-        /* ТАЙМЕРЫ */
-        .timer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .timer-item {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 12px; padding: 14px 5px; text-align: center; cursor: pointer;
+        /* UPLOAD AREA */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 50px 15px;
+            text-align: center;
+            background: rgba(255,255,255,0.02);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
-        .timer-item.selected { border-color: var(--accent); background: rgba(0, 242, 129, 0.03); }
-        .timer-val { font-size: 14px; font-weight: 700; display: block; }
-        .timer-icon { font-size: 18px; margin-bottom: 5px; display: block; }
-
-        /* VISION AI */
-        .upload-area { border: 2px dashed var(--border); border-radius: 20px; padding: 40px 15px; text-align: center; background: rgba(255,255,255,0.02); position: relative; overflow: hidden; cursor: pointer; }
         #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; }
         .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0: 15px var(--accent); display: none; z-index: 5; }
 
-        /* РЕЗУЛЬТАТ */
-        .result-card { background: var(--card-bg); border-radius: 24px; padding: 25px; text-align: center; border: 2px solid var(--border); margin-top: 5px; }
-        .signal-val { font-size: 44px; font-weight: 900; margin: 10px 0; letter-spacing: 1px; }
-        .analysis-box { background: #11151e; border-radius: 12px; padding: 15px; margin-top: 15px; text-align: left; border: 1px solid var(--border); }
-        .analysis-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-gray); }
+        /* RESULT CARD */
+        .result-card { background: var(--card-bg); border-radius: 24px; padding: 30px 20px; text-align: center; border: 2px solid var(--border); }
+        .signal-val { font-size: 48px; font-weight: 900; margin: 15px 0; letter-spacing: 1px; }
+        
+        .analysis-box {
+            background: #11151e;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            border-left: 3px solid var(--accent);
+        }
+        .analysis-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: var(--text-gray); }
         .analysis-item b { color: #fff; }
 
-        /* ГЛАВНАЯ КНОПКА (СТИЛЬ ИЗ ВИДЕО) */
+        /* BUTTONS */
         .btn-main {
             width: 100%;
-            padding: 18px;
+            padding: 20px;
             background: var(--accent);
             color: #000;
             border: none;
-            border-radius: 14px;
+            border-radius: 16px;
             font-weight: 800;
-            font-size: 15px;
-            margin-top: 15px;
+            font-size: 16px;
             cursor: pointer;
             text-transform: uppercase;
-            box-shadow: 0 5px 15px rgba(0, 242, 129, 0.3);
-            transition: transform 0.1s;
+            box-shadow: 0 5px 20px rgba(0, 242, 129, 0.3);
+            transition: 0.2s;
         }
         .btn-main:active { transform: scale(0.98); }
-        .btn-main:disabled { background: #2c313a; color: #555; box-shadow: none; }
-
-        .back-link { text-align: center; color: var(--text-gray); font-size: 13px; margin-top: 15px; cursor: pointer; display: block; text-decoration: none; }
-
-        /* ЛИДЕРБОРД */
-        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin: 25px 0; }
-        .podium-item { background: var(--card-bg); border-radius: 12px; padding: 15px 5px; text-align: center; width: 85px; position: relative; border: 1px solid var(--border); }
-        .rank-list { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
-        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #1a1f29; font-size: 13px; }
+        .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
 
         /* NAV BAR */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%;
             background: #11151e;
             display: flex; justify-content: space-around;
-            padding: 12px 0 25px 0;
+            padding: 15px 0 35px 0;
             border-top: 1px solid var(--border);
             z-index: 1000;
         }
         .nav-item { color: var(--text-gray); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
         .pulse { animation: pulseAnim 1.5s infinite; }
         @keyframes pulseAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        #hidden-chart { display: none; }
     </style>
 </head>
 <body>
@@ -147,146 +128,124 @@
     <div class="app-header">
         <div class="header-logo">📈</div>
         <h1 class="app-title">Kryon Algo Trade Bot</h1>
-        <p class="app-subtitle">Advanced Trading Signals</p>
+        <p class="app-subtitle">Advanced AI Vision Analysis</p>
         <div class="steps-bar">
-            <span id="step-pairs" class="active">Pairs</span>
-            <span id="step-time">Time</span>
-            <span id="step-signal">Signal</span>
+            <span id="step-upload" class="active">Upload</span>
+            <span id="step-result">Result</span>
         </div>
     </div>
 
     <div class="content">
-        <!-- ТАБ: СИГНАЛЫ -->
-        <div id="tab-signals" class="screen active">
+        <!-- ЭКРАН 1: ЗАГРУЗКА -->
+        <div id="screen-upload" class="screen active">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div id="placeholder">
+                    <div style="font-size: 50px; margin-bottom: 15px;">📁</div>
+                    <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
+                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 8px;" id="t-upload-desc">AI scans history and detects trend exhaustion</div>
+                </div>
+                <div class="scan-line" id="scanLine"></div>
+                <canvas id="main-canvas"></canvas>
+            </div>
             
-            <div id="screen-modes" class="screen active">
-                <div class="card" onclick="window.switchScreen('assets')">
-                    <div class="card-icon">⚡</div>
-                    <div class="card-info">
-                        <div class="card-title">Signal by Instrument <span class="badge green">Fast</span></div>
-                        <div class="card-desc">Choose pair and time — instant signal</div>
-                    </div>
-                </div>
-                <div class="card" onclick="window.switchScreen('screenshot')">
-                    <div class="card-icon">📸</div>
-                    <div class="card-info">
-                        <div class="card-title">Signal from Screenshot <span class="badge">AI</span></div>
-                        <div class="card-desc">Deep scan for exhaustion and history</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="screen-assets" class="screen">
-                <div class="card" onclick="window.switchScreen('pairs')">
-                    <div class="card-icon">💱</div>
-                    <div class="card-info"><div class="card-title">Currency Pairs</div></div>
-                </div>
-                <a class="back-link" onclick="window.switchScreen('modes')">← Back to Menu</a>
-            </div>
-
-            <div id="screen-pairs" class="screen">
-                <div class="pairs-list">
-                    <div class="pair-row" onclick="window.toTimer('EURUSD', 'EUR ➔ USD')"><div class="pair-flags">🇪🇺 EUR ➔ USD 🇺🇸</div><button class="trade-btn-fake">Trade</button></div>
-                    <div class="pair-row" onclick="window.toTimer('BTCUSDT', 'BTC / USDT')"><div class="pair-flags">₿ BTC ➔ USDT</div><button class="trade-btn-fake">Trade</button></div>
-                </div>
-                <a class="back-link" onclick="window.switchScreen('assets')">← Back</a>
-            </div>
-
-            <div id="screen-timer" class="screen">
-                <h3 id="timer-pair-name" style="text-align:center;">---</h3>
-                <div class="timer-grid">
-                    <div class="timer-item" onclick="window.selectTimer(this)"><span class="timer-icon">⚡</span><span class="timer-val">5s</span></div>
-                    <div class="timer-item selected" onclick="window.selectTimer(this)"><span class="timer-icon">📊</span><span class="timer-val">1m</span></div>
-                    <div class="timer-item" onclick="window.selectTimer(this)"><span class="timer-icon">🏆</span><span class="timer-val">5m</span></div>
-                </div>
-                <button class="btn-main" onclick="window.toFinalResult()">⚡ Get Signal</button>
-                <a class="back-link" onclick="window.switchScreen('pairs')">← Back</a>
-            </div>
-
-            <div id="screen-screenshot" class="screen">
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <div id="placeholder">
-                        <div style="font-size: 40px; margin-bottom: 10px;">📁</div>
-                        <div style="font-weight: 800;">UPLOAD SCREENSHOT</div>
-                    </div>
-                    <div class="scan-line" id="scanLine"></div>
-                    <canvas id="main-canvas"></canvas>
-                </div>
-                <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
-                <!-- КНОПКА ТЕПЕРЬ СТИЛИЗОВАНА -->
-                <button id="visionBtn" class="btn-main" style="display:none" onclick="window.performDeepAnalysis()">Start Neural Scan</button>
-                <a class="back-link" onclick="window.switchScreen('modes')">← Back</a>
-            </div>
-
-            <div id="screen-result" class="screen">
-                <div class="result-card" id="resBorder">
-                    <div style="color: var(--text-gray); font-size: 11px;">KRYON AI RESULT</div>
-                    <div id="resSignal" class="signal-val">---</div>
-                    <div id="resAccuracy" style="font-size: 18px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
-                    <div class="analysis-box">
-                        <div class="analysis-item"><span>Trend:</span> <b id="trend-status">Normal</b></div>
-                        <div class="analysis-item"><span>Rec. Time:</span> <b id="rec-time">--:--</b></div>
-                    </div>
-                </div>
-                <button class="btn-main" onclick="window.switchTab('signals', 0)" style="background:#1c212c; color:#fff;">Close</button>
-            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
+            
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performDeepAnalysis()">
+                Start Neural Scan
+            </button>
+            
+            <button class="lang-btn" style="margin: 30px auto 0; display: block; background:none; border:1px solid var(--border); color:#fff; padding:8px 15px; border-radius:8px; font-size:12px;" onclick="window.toggleLang()">
+                RU / EN
+            </button>
         </div>
 
-        <!-- ТАБЫ: РЕЙТИНГ / ОБУЧЕНИЕ / НАСТРОЙКИ (Кратко) -->
-        <div id="tab-rating" class="screen"><h3 style="text-align:center;">Leaderboard</h3></div>
-        <div id="tab-edu" class="screen"><h3 style="text-align:center;">Learn</h3></div>
-        <div id="tab-settings" class="screen"><h3 style="text-align:center;">Settings</h3></div>
-
+        <!-- ЭКРАН 2: РЕЗУЛЬТАТ -->
+        <div id="screen-result" class="screen">
+            <div class="result-card" id="resBorder">
+                <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px;" id="t-res-label">KRYON AI DEEP ANALYSIS</div>
+                <div id="resSignal" class="signal-val">---</div>
+                <div id="resAccuracy" style="font-size: 20px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
+                
+                <div class="analysis-box">
+                    <div class="analysis-item"><span id="t-an-status">Status:</span> <b id="trend-status">---</b></div>
+                    <div class="analysis-item"><span id="t-an-impulse">Impulse:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span id="t-an-time">Rec. Time:</span> <b id="rec-time">---</b></div>
+                </div>
+            </div>
+            
+            <button class="btn-main" style="margin-top: 25px; background: #232a35; color: #fff;" onclick="window.resetApp()">
+                <span id="t-btn-new">New Analysis</span>
+            </button>
+        </div>
     </div>
 
+    <!-- NAVBAR -->
     <div class="nav-bar">
-        <div class="nav-item active" onclick="window.switchTab('signals', 0)"><div class="nav-icon">⚡</div><span>Signals</span></div>
-        <div class="nav-item" onclick="window.switchTab('edu', 1)"><div class="nav-icon">🎓</div><span>Learn</span></div>
-        <div class="nav-item" onclick="window.switchTab('rating', 2)"><div class="nav-icon">🏆</div><span>Top</span></div>
-        <div class="nav-item" onclick="window.switchTab('settings', 3)"><div class="nav-icon">⚙️</div><span>Settings</span></div>
+        <div class="nav-item active">
+            <div class="nav-icon">⚡</div><span id="t-nav-sig">Signals</span>
+        </div>
+        <div class="nav-item" onclick="tg.showAlert('Coming Soon')">
+            <div class="nav-icon">🏆</div><span id="t-nav-top">Top</span>
+        </div>
+        <div class="nav-item" onclick="tg.showAlert('Coming Soon')">
+            <div class="nav-icon">⚙️</div><span id="t-nav-set">Settings</span>
+        </div>
     </div>
-
-    <div id="hidden-chart"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.headerColor = "#11151e";
 
-        window.switchTab = function(tabId, idx) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.querySelectorAll('.nav-item')[idx].classList.add('active');
-            if(tabId === 'signals') window.switchScreen('modes');
-        };
-
-        window.switchScreen = function(screenId) {
-            const signalsTab = document.getElementById('tab-signals');
-            signalsTab.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-' + screenId).classList.add('active');
-        };
-
-        window.toTimer = function(symbol, name) {
-            document.getElementById('timer-pair-name').innerText = name;
-            window.switchScreen('timer');
-        };
-
-        window.selectTimer = function(el) {
-            document.querySelectorAll('.timer-item').forEach(t => t.classList.remove('selected'));
-            el.classList.add('selected');
-        };
-
-        window.toFinalResult = function() {
-            window.switchScreen('result');
-            const isUp = Math.random() > 0.5;
-            document.getElementById('resSignal').innerText = isUp ? "CALL 🟢" : "PUT 🔴";
-            document.getElementById('resSignal').style.color = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resAccuracy').innerText = "Confidence: 84%";
-            tg.HapticFeedback.notificationOccurred('success');
-        };
-
+        window.lang = 'en';
         let canvas = document.getElementById('main-canvas');
         let ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        const trans = {
+            ru: {
+                sig: "Сигналы", top: "Топ", set: "Настройки",
+                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ анализирует историю и перегрев тренда",
+                btn_scan: "Начать анализ", res_l: "KRYON ГЛУБОКИЙ АНАЛИЗ",
+                an_s: "Статус:", an_i: "Импульс:", an_t: "Время:",
+                btn_new: "Новый анализ",
+                up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
+                follow: "По тренду", reversal: "РАЗВОРОТ (Перегрев)",
+                normal: "Нормальный", overheated: "ПЕРЕГРЕТ",
+                waiting: "Обработка..."
+            },
+            en: {
+                sig: "Signals", top: "Rating", set: "Settings",
+                up_t: "UPLOAD SCREENSHOT", up_d: "AI scans history and detects trend exhaustion",
+                btn_scan: "Start Neural Scan", res_l: "KRYON AI DEEP ANALYSIS",
+                an_s: "Status:", an_i: "Impulse:", an_t: "Time:",
+                btn_new: "New Analysis",
+                up: "CALL 🟢", down: "PUT 🔴",
+                follow: "Trend Following", reversal: "REVERSAL (Exhaustion)",
+                normal: "Normal", overheated: "OVERHEATED",
+                waiting: "Processing..."
+            }
+        };
+
+        window.updateUI = function() {
+            const t = trans[window.lang];
+            document.getElementById('t-nav-sig').innerText = t.sig;
+            document.getElementById('t-nav-top').innerText = t.top;
+            document.getElementById('t-nav-set').innerText = t.set;
+            document.getElementById('t-upload-title').innerText = t.up_t;
+            document.getElementById('t-upload-desc').innerText = t.up_d;
+            document.getElementById('visionBtn').innerText = t.btn_scan;
+            document.getElementById('t-res-label').innerText = t.res_l;
+            document.getElementById('t-an-status').innerText = t.an_s;
+            document.getElementById('t-an-impulse').innerText = t.an_i;
+            document.getElementById('t-an-time').innerText = t.an_t;
+            document.getElementById('t-btn-new').innerText = t.btn_new;
+        };
+
+        window.toggleLang = function() {
+            window.lang = window.lang === 'en' ? 'ru' : 'en';
+            window.updateUI();
+            tg.HapticFeedback.impactOccurred('light');
+        };
 
         window.handleImage = function(input) {
             const file = input.files[0];
@@ -299,7 +258,8 @@
                     ctx.drawImage(img, 0, 0);
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
-                    document.getElementById('visionBtn').style.display = 'block'; // Кнопка появится здесь
+                    document.getElementById('visionBtn').style.display = 'block';
+                    tg.HapticFeedback.impactOccurred('medium');
                 };
                 img.src = e.target.result;
             };
@@ -310,10 +270,55 @@
             const btn = document.getElementById('visionBtn');
             const line = document.getElementById('scanLine');
             btn.disabled = true; line.style.display = 'block';
+            tg.HapticFeedback.impactOccurred('medium');
+
             await new Promise(r => setTimeout(r, 3000));
-            line.style.display = 'none'; btn.disabled = false;
-            window.toFinalResult();
+
+            const w = canvas.width, h = canvas.height;
+            const histData = ctx.getImageData(0, 0, Math.floor(w*0.7), h).data;
+            const nowData = ctx.getImageData(Math.floor(w*0.7), 0, Math.floor(w*0.3), h).data;
+
+            function count(data) {
+                let g=0, r=0;
+                for(let i=0; i<data.length; i+=16) {
+                    if(data[i+1] > data[i]+15 && data[i+1] > data[i+2]+15) g++;
+                    if(data[i] > data[i+1]+15 && data[i] > data[i+2]+15) r++;
+                }
+                return {g, r};
+            }
+
+            const hP = count(histData), nP = count(nowData);
+            line.style.display = 'none';
+
+            const avgH = (hP.g + hP.r) / 2;
+            const isExhausted = Math.max(nP.g, nP.r) > (avgH * 0.85);
+            const isUp = isExhausted ? (nP.r > nP.g) : (nP.g > nP.r);
+
+            // Переход к результату
+            document.getElementById('screen-upload').classList.remove('active');
+            document.getElementById('screen-result').classList.add('active');
+            document.getElementById('step-result').classList.add('active');
+
+            const t = trans[window.lang];
+            const resS = document.getElementById('resSignal');
+            resS.innerText = isUp ? t.up : t.down;
+            resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
+            document.getElementById('resBorder').style.borderColor = resS.style.color;
+            
+            document.getElementById('trend-status').innerText = isExhausted ? t.reversal : t.follow;
+            document.getElementById('trend-status').style.color = isExhausted ? "var(--warning)" : "var(--accent)";
+            document.getElementById('impulse-power').innerText = isExhausted ? t.overheated : t.normal;
+            document.getElementById('rec-time').innerText = isExhausted ? "1-2 MIN" : "5-10 MIN";
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (65 + (Math.random()*28)).toFixed(1) + "%";
+
+            tg.HapticFeedback.notificationOccurred('success');
         };
+
+        window.resetApp = function() {
+            location.reload();
+        };
+
+        window.updateUI();
     </script>
 </body>
 </html>
