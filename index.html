@@ -59,7 +59,7 @@
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* UPLOAD AREA */
+        /* UPLOAD AREA & ANIMATION */
         .upload-area {
             border: 2px dashed var(--border);
             border-radius: 20px;
@@ -70,8 +70,21 @@
             overflow: hidden;
             cursor: pointer;
         }
-        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; }
-        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0: 15px var(--accent); display: none; z-index: 5; }
+        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; transition: filter 0.3s; }
+        
+        /* Линия сканера */
+        .scan-line { 
+            position: absolute; left: 0; width: 100%; height: 4px; 
+            background: var(--accent); box-shadow: 0 0 20px var(--accent); 
+            display: none; z-index: 10;
+        }
+
+        /* Текстовые логи анализа */
+        .analysis-log {
+            position: absolute; top: 10px; left: 10px;
+            font-family: monospace; font-size: 10px; color: var(--accent);
+            text-align: left; pointer-events: none; z-index: 11; display: none;
+        }
 
         /* RESULT CARD */
         .result-card { background: var(--card-bg); border-radius: 24px; padding: 30px 20px; text-align: center; border: 2px solid var(--border); }
@@ -106,7 +119,7 @@
         .btn-main:active { transform: scale(0.98); }
         .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
 
-        /* NAV BAR */
+        /* NAVBAR (ONLY SIGNALS) */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%;
             background: #11151e;
@@ -115,8 +128,7 @@
             border-top: 1px solid var(--border);
             z-index: 1000;
         }
-        .nav-item { color: var(--text-gray); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
+        .nav-item { color: var(--accent); display: flex; flex-direction: column; align-items: center; font-size: 10px; }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
         .pulse { animation: pulseAnim 1.5s infinite; }
@@ -140,10 +152,12 @@
         <div id="screen-upload" class="screen active">
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <div id="placeholder">
-                    <div style="font-size: 50px; margin-bottom: 15px;">📁</div>
+                    <div style="font-size: 50px; margin-bottom: 15px;">🖼️</div>
                     <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
                     <div style="font-size: 11px; color: var(--text-gray); margin-top: 8px;" id="t-upload-desc">AI scans history and detects trend exhaustion</div>
                 </div>
+                
+                <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
@@ -179,16 +193,10 @@
         </div>
     </div>
 
-    <!-- NAVBAR -->
+    <!-- NAVBAR (ONLY SIGNALS) -->
     <div class="nav-bar">
-        <div class="nav-item active">
+        <div class="nav-item">
             <div class="nav-icon">⚡</div><span id="t-nav-sig">Signals</span>
-        </div>
-        <div class="nav-item" onclick="tg.showAlert('Coming Soon')">
-            <div class="nav-icon">🏆</div><span id="t-nav-top">Top</span>
-        </div>
-        <div class="nav-item" onclick="tg.showAlert('Coming Soon')">
-            <div class="nav-icon">⚙️</div><span id="t-nav-set">Settings</span>
         </div>
     </div>
 
@@ -203,7 +211,7 @@
 
         const trans = {
             ru: {
-                sig: "Сигналы", top: "Топ", set: "Настройки",
+                sig: "Сигналы",
                 up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ анализирует историю и перегрев тренда",
                 btn_scan: "Начать анализ", res_l: "KRYON ГЛУБОКИЙ АНАЛИЗ",
                 an_s: "Статус:", an_i: "Импульс:", an_t: "Время:",
@@ -211,10 +219,14 @@
                 up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
                 follow: "По тренду", reversal: "РАЗВОРОТ (Перегрев)",
                 normal: "Нормальный", overheated: "ПЕРЕГРЕТ",
-                waiting: "Обработка..."
+                log1: "> Считывание RGBA данных...",
+                log2: "> Поиск свечных паттернов...",
+                log3: "> Анализ истории волатильности...",
+                log4: "> Расчет коэффициента перегрева...",
+                log5: "> Формирование сигнала..."
             },
             en: {
-                sig: "Signals", top: "Rating", set: "Settings",
+                sig: "Signals",
                 up_t: "UPLOAD SCREENSHOT", up_d: "AI scans history and detects trend exhaustion",
                 btn_scan: "Start Neural Scan", res_l: "KRYON AI DEEP ANALYSIS",
                 an_s: "Status:", an_i: "Impulse:", an_t: "Time:",
@@ -222,15 +234,17 @@
                 up: "CALL 🟢", down: "PUT 🔴",
                 follow: "Trend Following", reversal: "REVERSAL (Exhaustion)",
                 normal: "Normal", overheated: "OVERHEATED",
-                waiting: "Processing..."
+                log1: "> Reading RGBA data...",
+                log2: "> Detecting candle patterns...",
+                log3: "> Analyzing volatility history...",
+                log4: "> Calculating exhaustion rate...",
+                log5: "> Finalizing signal..."
             }
         };
 
         window.updateUI = function() {
             const t = trans[window.lang];
             document.getElementById('t-nav-sig').innerText = t.sig;
-            document.getElementById('t-nav-top').innerText = t.top;
-            document.getElementById('t-nav-set').innerText = t.set;
             document.getElementById('t-upload-title').innerText = t.up_t;
             document.getElementById('t-upload-desc').innerText = t.up_d;
             document.getElementById('visionBtn').innerText = t.btn_scan;
@@ -269,10 +283,24 @@
         window.performDeepAnalysis = async function() {
             const btn = document.getElementById('visionBtn');
             const line = document.getElementById('scanLine');
-            btn.disabled = true; line.style.display = 'block';
+            const log = document.getElementById('analysisLog');
+            const t = trans[window.lang];
+            
+            btn.disabled = true;
+            line.style.display = 'block';
+            log.style.display = 'block';
+            canvas.style.filter = "blur(2px) grayscale(0.5)";
+            
             tg.HapticFeedback.impactOccurred('medium');
 
-            await new Promise(r => setTimeout(r, 3000));
+            // Анимация логов и сканера
+            const logSteps = [t.log1, t.log2, t.log3, t.log4, t.log5];
+            for (let i = 0; i < logSteps.length; i++) {
+                log.innerHTML += logSteps[i] + "<br>";
+                line.style.top = (i * 20) + "%";
+                tg.HapticFeedback.selectionChanged();
+                await new Promise(r => setTimeout(r, 700));
+            }
 
             const w = canvas.width, h = canvas.height;
             const histData = ctx.getImageData(0, 0, Math.floor(w*0.7), h).data;
@@ -288,8 +316,6 @@
             }
 
             const hP = count(histData), nP = count(nowData);
-            line.style.display = 'none';
-
             const avgH = (hP.g + hP.r) / 2;
             const isExhausted = Math.max(nP.g, nP.r) > (avgH * 0.85);
             const isUp = isExhausted ? (nP.r > nP.g) : (nP.g > nP.r);
@@ -297,9 +323,7 @@
             // Переход к результату
             document.getElementById('screen-upload').classList.remove('active');
             document.getElementById('screen-result').classList.add('active');
-            document.getElementById('step-result').classList.add('active');
 
-            const t = trans[window.lang];
             const resS = document.getElementById('resSignal');
             resS.innerText = isUp ? t.up : t.down;
             resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
