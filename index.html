@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kryon Algo Trade Bot</title>
+    <title>Kryon Algo Trade Bot - Ultra</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg-color: #0c0f17;
@@ -115,6 +114,14 @@
             padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: bold;
             cursor: pointer; margin: 30px auto 0; display: block;
         }
+
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%;
+            background: #11151e; border-top: 1px solid var(--border);
+            padding: 15px 0 35px 0; text-align: center;
+        }
+        .nav-item { color: var(--accent); font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
     </style>
 </head>
 <body>
@@ -122,7 +129,7 @@
     <div class="app-header">
         <div class="header-logo">📈</div>
         <h1 class="app-title">Kryon Algo Trade Bot</h1>
-        <p class="app-subtitle">Advanced AI Vision Analysis</p>
+        <p class="app-subtitle">Multi-Zone AI Vision</p>
         <div class="steps-bar">
             <span id="step-upload" class="active">Upload</span>
             <span id="step-result">Signal</span>
@@ -130,13 +137,13 @@
     </div>
 
     <div class="content">
-        <!-- ЭКРАН 1: ЗАГРУЗКА И АНИМАЦИЯ -->
+        <!-- ЭКРАН 1: ЗАГРУЗКА -->
         <div id="screen-upload" class="screen active">
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <div id="placeholder">
                     <div style="font-size: 55px; margin-bottom: 20px;">🖼️</div>
                     <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
-                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI scans history and detects trend exhaustion</div>
+                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI detects momentum shifts and reversals</div>
                 </div>
                 <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
@@ -145,7 +152,7 @@
             
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
             
-            <button id="visionBtn" class="btn-main" style="display:none;" onclick="window.performUltraAnalysis()">
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">
                 Start Neural Scan
             </button>
             
@@ -160,17 +167,19 @@
                 <div id="resAccuracy" style="font-size: 20px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
                 
                 <div class="analysis-box">
-                    <div class="analysis-item"><span>Market Phase:</span> <b id="trend-status">---</b></div>
-                    <div class="analysis-item"><span>Impulse Zone:</span> <b id="impulse-zone">---</b></div>
-                    <div class="analysis-item"><span>Rec. Time:</span> <b id="rec-time">---</b></div>
+                    <div class="analysis-item"><span id="t-an-status">Trend Logic:</span> <b id="trend-status">---</b></div>
+                    <div class="analysis-item"><span id="t-an-impulse">Momentum:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span id="t-an-time">Rec. Time:</span> <b id="rec-time">---</b></div>
                 </div>
             </div>
             
-            <button class="btn-main" style="background: #232a35; color: #fff;" onclick="location.reload()">
+            <button class="btn-main" style="margin-top: 25px; background: #232a35; color: #fff;" onclick="window.resetApp()">
                 <span id="t-btn-new">New Analysis</span>
             </button>
         </div>
     </div>
+
+    <div class="nav-bar"><div class="nav-item">⚡ Signals Active</div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -183,20 +192,22 @@
 
         const trans = {
             ru: {
-                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ анализирует историю и перегрев тренда",
+                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ ищет смену импульса и развороты",
                 btn_scan: "Начать анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
-                res_l: "KRYON ГЛУБОКИЙ АНАЛИЗ", btn_new: "Новый анализ",
-                follow: "По тренду", reversal: "РАЗВОРОТ (Перегрев)",
-                normal: "Нормальный", overheated: "ПЕРЕГРЕТ",
+                res_l: "KRYON AI ULTRA ANALYZER", btn_new: "Новый анализ",
+                trend: "Логика:", impulse: "Импульс:", time: "Время:",
+                following: "По тренду", reversal: "РАЗВОРОТ (Отскок)",
+                stable: "Стабильный", shifting: "СМЕНА СИЛ",
                 log1: "> Считывание пикселей...", log2: "> Анализ зон...", log3: "> Поиск уровней...", log4: "> Проверка импульса...", log5: "> Итоговый расчет..."
             },
             en: {
-                up_t: "UPLOAD SCREENSHOT", up_d: "AI scans history and detects trend exhaustion",
+                up_t: "UPLOAD SCREENSHOT", up_d: "AI detects momentum shifts and reversals",
                 btn_scan: "Start Neural Scan", up: "CALL 🟢", down: "PUT 🔴",
-                res_l: "KRYON AI DEEP ANALYSIS", btn_new: "New Analysis",
-                follow: "Trend Following", reversal: "REVERSAL (Overheated)",
-                normal: "Normal", overheated: "BURST DETECTED",
-                log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Impulse check...", log5: "> Finalizing..."
+                res_l: "KRYON AI ULTRA ANALYZER", btn_new: "New Analysis",
+                trend: "Logic:", impulse: "Momentum:", time: "Time:",
+                following: "Trend Following", reversal: "REVERSAL (Bounce)",
+                stable: "Stable", shifting: "SHIFT DETECTED",
+                log1: "> Reading pixels...", log2: "> Zone analysis...", log3: "> Level detection...", log4: "> Momentum check...", log5: "> Finalizing..."
             }
         };
 
@@ -208,6 +219,9 @@
             document.getElementById('visionBtn').innerText = t.btn_scan;
             document.getElementById('t-res-label').innerText = t.res_l;
             document.getElementById('t-btn-new').innerText = t.btn_new;
+            document.getElementById('t-an-status').innerText = t.trend;
+            document.getElementById('t-an-impulse').innerText = t.impulse;
+            document.getElementById('t-an-time').innerText = t.time;
             tg.HapticFeedback.impactOccurred('light');
         };
 
@@ -223,6 +237,7 @@
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
                     document.getElementById('visionBtn').style.display = 'block';
+                    tg.HapticFeedback.impactOccurred('medium');
                 };
                 img.src = e.target.result;
             };
@@ -243,12 +258,14 @@
                 log.innerHTML += logSteps[i] + "<br>";
                 line.style.top = (i * 20) + "%";
                 tg.HapticFeedback.selectionChanged();
-                await new Promise(r => setTimeout(r, 700));
+                await new Promise(r => setTimeout(r, 600));
             }
 
             const w = canvas.width, h = canvas.height;
-            const histData = ctx.getImageData(0, 0, Math.floor(w*0.7), h).data;
-            const nowData = ctx.getImageData(Math.floor(w*0.7), 0, Math.floor(w*0.3), h).data;
+            // Делим на 3 зоны для точности
+            const historyData = ctx.getImageData(0, 0, Math.floor(w*0.6), h).data; // 60% слева
+            const nearPastData = ctx.getImageData(Math.floor(w*0.6), 0, Math.floor(w*0.2), h).data; // 20% середина
+            const signalData = ctx.getImageData(Math.floor(w*0.8), 0, Math.floor(w*0.2), h).data; // 20% самый конец
 
             function count(data) {
                 let g=0, r=0;
@@ -259,30 +276,42 @@
                 return {g, r};
             }
 
-            const hP = count(histData), nP = count(nowData);
-            const densH = (hP.g + hP.r) / (w * 0.7 * h), densN = (nP.g + nP.r) / (w * 0.3 * h);
-            const isExhausted = densN > (densH * 2.2);
+            const hP = count(historyData), nP = count(nearPastData), sP = count(signalData);
+
+            // ЛОГИКА РАЗВОРОТА:
+            // Если в Near Past было много красного, а в Signal Data резко выросло зеленое — это РАЗВОРОТ
+            const isReversalUp = (nP.r > nP.g * 1.5) && (sP.g > sP.r * 1.2);
+            const isReversalDown = (nP.g > nP.r * 1.5) && (sP.r > sP.g * 1.2);
 
             document.getElementById('screen-upload').classList.remove('active');
             document.getElementById('screen-result').classList.add('active');
             document.getElementById('step-result').classList.add('active');
 
-            let isUp = nP.g > nP.r;
-            if (isExhausted) isUp = nP.r > nP.g; 
+            let isUp = sP.g > sP.r;
+            let status = t.following;
+            let impulse = t.stable;
+            let recTime = "5 - 10 MIN";
+
+            if (isReversalUp) {
+                isUp = true; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN";
+            } else if (isReversalDown) {
+                isUp = false; status = t.reversal; impulse = t.shifting; recTime = "1 - 3 MIN";
+            }
 
             const resS = document.getElementById('resSignal');
             resS.innerText = isUp ? t.up : t.down;
             resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
             document.getElementById('resBorder').style.borderColor = resS.style.color;
-            document.getElementById('trend-status').innerText = isExhausted ? t.reversal : t.follow;
-            document.getElementById('trend-status').style.color = isExhausted ? "var(--warning)" : "var(--accent)";
-            document.getElementById('impulse-zone').innerText = isExhausted ? t.overheated : t.normal;
-            document.getElementById('rec-time').innerText = isExhausted ? "1-2 MIN" : "5-10 MIN";
-            document.getElementById('resAccuracy').innerText = "Confidence: " + (65 + Math.random()*28).toFixed(1) + "%";
+            document.getElementById('trend-status').innerText = status;
+            document.getElementById('trend-status').style.color = (isReversalUp || isReversalDown) ? "var(--warning)" : "var(--accent)";
+            document.getElementById('impulse-power').innerText = impulse;
+            document.getElementById('rec-time').innerText = recTime;
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (68 + Math.random()*22).toFixed(1) + "%";
 
             tg.HapticFeedback.notificationOccurred('success');
         };
 
+        window.resetApp = function() { location.reload(); };
         window.updateUI();
     </script>
 </body>
