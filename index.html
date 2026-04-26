@@ -10,6 +10,7 @@
             --bg-color: #0b0e14;
             --card-bg: #1a1e26;
             --accent: #00f281;
+            --purple: #9d00ff;
             --text-main: #ffffff;
             --text-gray: #8e949a;
             --border: #2c313a;
@@ -25,13 +26,11 @@
             display: flex; flex-direction: column; min-height: 100vh;
         }
 
-        /* ХЕДЕР */
-        .app-header { padding: 20px; text-align: center; background: linear-gradient(to bottom, #161a23, var(--bg-color)); }
-        .app-title { font-size: 22px; font-weight: 800; margin: 0; }
-        .app-subtitle { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .app-header { padding: 20px; text-align: center; background: linear-gradient(to bottom, #161a23, var(--bg-color)); border-bottom: 1px solid var(--border); }
+        .app-title { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: 1px; }
+        .app-subtitle { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* КОНТЕНТ */
-        .content { flex: 1; padding: 15px; padding-bottom: 90px; }
+        .content { flex: 1; padding: 15px; padding-bottom: 100px; }
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -39,203 +38,238 @@
         /* КАРТОЧКИ */
         .method-card {
             background: var(--card-bg); border-radius: 16px; padding: 20px;
-            margin-bottom: 15px; border: 1px solid var(--border);
+            margin-bottom: 12px; border: 1px solid var(--border);
             display: flex; align-items: center; gap: 15px; cursor: pointer;
         }
         .method-icon { width: 40px; height: 40px; background: #232933; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 20px; }
         .method-info { flex: 1; }
-        .method-name { font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
-        .method-desc { font-size: 11px; color: var(--text-gray); margin-top: 4px; }
-        .badge-ai { background: rgba(0, 242, 129, 0.1); color: var(--accent); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; }
+        .method-name { font-weight: bold; font-size: 15px; }
+        .badge-ai { background: rgba(0, 242, 129, 0.1); color: var(--accent); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 10px; }
 
-        /* СКРИНШОТ СКРИН */
-        .upload-area {
-            border: 2px dashed var(--border); border-radius: 20px;
-            padding: 40px 20px; text-align: center; cursor: pointer;
-            background: rgba(255,255,255,0.02); margin-top: 20px;
+        /* СПИСОК ПАР */
+        .pair-row { padding: 18px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer; }
+        .pair-row:active { background: rgba(255,255,255,0.05); }
+
+        /* ТАЙМЕРЫ */
+        .timer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .timer-item {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 15px 5px; text-align: center; cursor: pointer;
         }
+        .timer-item.selected { border-color: var(--accent); background: rgba(0, 242, 129, 0.05); box-shadow: 0 0 10px rgba(0, 242, 129, 0.2); }
+
+        /* СКРИНШОТ */
+        .upload-area { border: 2px dashed var(--border); border-radius: 20px; padding: 40px 20px; text-align: center; cursor: pointer; margin-top: 20px; }
         #preview-img { width: 100%; border-radius: 12px; margin-top: 15px; display: none; border: 1px solid var(--accent); }
 
-        /* АНИМАЦИЯ СКАНИРОВАНИЯ */
-        .scanner-container { position: relative; width: 100%; overflow: hidden; display: none; margin-top: 15px; }
-        .scanner-line {
-            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: var(--accent); box-shadow: 0 0 15px var(--accent);
-            animation: scanMove 2s linear infinite;
+        /* ЭКРАН РЕЗУЛЬТАТА */
+        .result-card {
+            background: var(--card-bg); border-radius: 24px; padding: 40px 20px;
+            text-align: center; border: 2px solid var(--accent); margin-top: 20px;
+            box-shadow: 0 0 30px rgba(0, 242, 129, 0.1);
         }
-        @keyframes scanMove { 0% { top: 0%; } 100% { top: 100%; } }
+        .result-signal { font-size: 48px; font-weight: 900; margin: 20px 0; text-transform: uppercase; }
 
-        /* РЕЗУЛЬТАТ */
-        .result-box {
-            background: var(--card-bg); border-radius: 20px; padding: 30px;
-            text-align: center; border: 2px solid var(--accent); display: none; margin-top: 20px;
-        }
-        .result-val { font-size: 40px; font-weight: 900; margin: 10px 0; }
+        /* АНИМАЦИЯ ЗАГРУЗКИ */
+        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { color: rgba(0,0,0,0); text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); } 40% { color: var(--accent); text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); } 60% { text-shadow: .5em 0 0 var(--accent), 1em 0 0 rgba(0,0,0,0); } 80%, 100% { text-shadow: .5em 0 0 var(--accent), 1em 0 0 var(--accent); } }
 
         /* КНОПКИ */
         .main-btn {
-            width: 100%; padding: 18px; background: var(--accent); color: #000;
-            border: none; border-radius: 14px; font-weight: 900; font-size: 16px;
-            margin-top: 20px; cursor: pointer;
+            width: 100%; padding: 20px; background: var(--accent); color: #000;
+            border: none; border-radius: 16px; font-weight: 900; font-size: 16px;
+            margin-top: 20px; cursor: pointer; text-transform: uppercase;
         }
-        .back-link { text-align: center; color: var(--text-gray); font-size: 13px; margin-top: 15px; cursor: pointer; }
+        .main-btn:disabled { background: #2c313a; color: #555; }
+        .back-link { text-align: center; color: var(--text-gray); font-size: 13px; margin-top: 20px; cursor: pointer; }
 
         /* НАВИГАЦИЯ */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; background: #11141b;
-            display: flex; justify-content: space-around; padding: 12px 0 25px 0; border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; padding: 15px 0 30px 0; border-top: 1px solid var(--border);
         }
-        .nav-item { color: var(--text-gray); display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 10px; cursor: pointer; }
+        .nav-item { color: var(--text-gray); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
     <div class="app-header">
-        <div class="app-title">Trade Algo Bot</div>
-        <p class="app-subtitle">Advanced Trading Signals</p>
+        <div class="app-title">TRADE ALGO BOT</div>
+        <p class="app-subtitle">Advanced AI Signals</p>
     </div>
 
     <div class="content">
-        <!-- ГЛАВНАЯ -->
+        <!-- ЭКРАН 1: ГЛАВНОЕ МЕНЮ -->
         <div id="screen-home" class="screen active">
-            <h2 style="text-align:center;">Get Signal</h2>
-            
+            <h2 style="text-align:center; margin-bottom:20px;">Get Signal</h2>
             <div class="method-card" onclick="showScreen('screen-assets')">
                 <div class="method-icon">⚡</div>
                 <div class="method-info">
-                    <div class="method-name">Signal by Instrument <span class="badge-ai" style="background:#232933; color:var(--text-gray)">Fast</span></div>
-                    <div class="method-desc">Choose an asset type and instrument — instant signal</div>
+                    <div class="method-name">Signal by Instrument <span class="badge-ai" style="background:#222; color:#888">Fast</span></div>
+                    <div class="method-desc" style="font-size:11px; color:var(--text-gray); margin-top:4px;">Instant signal for selected pair</div>
                 </div>
-                <div>❯</div>
             </div>
-
-            <!-- ИСПРАВЛЕННАЯ КАРТОЧКА СКРИНШОТА -->
             <div class="method-card" onclick="showScreen('screen-screenshot')">
                 <div class="method-icon">📸</div>
                 <div class="method-info">
                     <div class="method-name">Signal from Screenshot <span class="badge-ai">AI</span></div>
-                    <div class="method-desc">Upload a chart screenshot — AI will analyze it</div>
+                    <div class="method-desc" style="font-size:11px; color:var(--text-gray); margin-top:4px;">AI analysis of your chart</div>
                 </div>
-                <div>❯</div>
             </div>
         </div>
 
-        <!-- ЭКРАН ЗАГРУЗКИ СКРИНШОТА -->
-        <div id="screen-screenshot" class="screen">
-            <h3 style="text-align:center;">AI Analysis</h3>
-            <p style="color:var(--text-gray); font-size:12px; text-align:center;">Upload a screenshot of your trading terminal</p>
-            
-            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                <div id="upload-placeholder">
-                    <span style="font-size:40px;">📁</span>
-                    <p>Click to upload image</p>
-                </div>
-                <div class="scanner-container" id="scanner-box">
-                    <div class="scanner-line"></div>
-                    <img id="preview-img" src="#">
-                </div>
-            </div>
-
-            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
-
-            <div id="result-area" class="result-box">
-                <div id="res-type" style="font-size:12px; text-transform:uppercase; letter-spacing:2px;">Signal</div>
-                <div id="res-val" class="result-val">---</div>
-                <div id="res-acc" style="color:var(--accent);">Accuracy: 96%</div>
-            </div>
-
-            <button id="analyze-btn" class="main-btn" style="display:none" onclick="startAIAnalysis()">🧠 Start AI Analysis</button>
-            <div class="back-link" onclick="resetScreenshot()">← Back</div>
-        </div>
-
-        <!-- Остальные экраны (заглушки) -->
+        <!-- ЭКРАН 2: ТИП АКТИВА -->
         <div id="screen-assets" class="screen">
-            <h3 style="text-align:center;">Assets</h3>
-            <div class="method-card"> Forex... </div>
+            <h3 style="text-align:center;">Select Asset Type</h3>
+            <div class="method-card" onclick="showScreen('screen-pairs')">
+                <div class="method-icon">⚖️</div>
+                <div class="method-info"><div class="method-name">Currency Pairs</div></div>
+            </div>
+            <div class="method-card" onclick="alert('Coming soon!')">
+                <div class="method-icon">₿</div>
+                <div class="method-info"><div class="method-name">Cryptocurrency</div></div>
+            </div>
+            <div class="back-link" onclick="showScreen('screen-home')">← Back to Menu</div>
+        </div>
+
+        <!-- ЭКРАН 3: ПАРЫ -->
+        <div id="screen-pairs" class="screen">
+            <h3 style="text-align:center;">Select Pair</h3>
+            <div style="background:var(--card-bg); border-radius:16px; border:1px solid var(--border);">
+                <div class="pair-row" onclick="selectPair('EUR / USD')">🇪🇺 EUR / USD</div>
+                <div class="pair-row" onclick="selectPair('GBP / USD')">🇬🇧 GBP / USD</div>
+                <div class="pair-row" onclick="selectPair('USD / JPY')">🇺🇸 USD / JPY</div>
+            </div>
+            <div class="back-link" onclick="showScreen('screen-assets')">← Back</div>
+        </div>
+
+        <!-- ЭКРАН 4: ТАЙМЕР -->
+        <div id="screen-timer" class="screen">
+            <h3 style="text-align:center;" id="timer-pair-name">EUR / USD</h3>
+            <div class="timer-grid">
+                <div class="timer-item" onclick="setTimer(this, '5s')">5s</div>
+                <div class="timer-item selected" onclick="setTimer(this, '15s')">15s</div>
+                <div class="timer-item" onclick="setTimer(this, '30s')">30s</div>
+                <div class="timer-item" onclick="setTimer(this, '1m')">1m</div>
+                <div class="timer-item" onclick="setTimer(this, '2m')">2m</div>
+                <div class="timer-item" onclick="setTimer(this, '5m')">5m</div>
+            </div>
+            <button class="main-btn" id="btn-get-manual" onclick="processSignal('manual')">🚀 Get Signal</button>
+            <div class="back-link" onclick="showScreen('screen-pairs')">← Back</div>
+        </div>
+
+        <!-- ЭКРАН 5: СКРИНШОТ -->
+        <div id="screen-screenshot" class="screen">
+            <h3 style="text-align:center;">Screenshot AI</h3>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div id="up-text">📁 Click to upload chart</div>
+                <img id="preview-img" src="#">
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
+            <button class="main-btn" id="btn-analyze-img" style="display:none" onclick="processSignal('ai')">🧠 Start AI Analysis</button>
             <div class="back-link" onclick="showScreen('screen-home')">← Back</div>
+        </div>
+
+        <!-- ЭКРАН 6: РЕЗУЛЬТАТ -->
+        <div id="screen-result" class="screen">
+            <h3 style="text-align:center;" id="res-pair-display">SIGNAL READY</h3>
+            <div class="result-card" id="res-card">
+                <div style="font-size:12px; color:var(--text-gray); letter-spacing:2px;">AI PREDICTION</div>
+                <div class="result-signal" id="res-val">---</div>
+                <div style="color:var(--accent); font-weight:bold;" id="res-acc">ACCURACY: 94%</div>
+            </div>
+            <button class="main-btn" onclick="showScreen('screen-home')">Close</button>
         </div>
     </div>
 
     <!-- НАВИГАЦИЯ -->
     <div class="nav-bar">
-        <div class="nav-item active" onclick="showScreen('screen-home')"><span>⚡</span><br>Signals</div>
-        <div class="nav-item"><span>🎓</span><br>Education</div>
-        <div class="nav-item"><span>🏆</span><br>Top</div>
-        <div class="nav-item"><span>⚙️</span><br>Settings</div>
+        <div class="nav-item active" onclick="showScreen('screen-home')">⚡<br>Signals</div>
+        <div class="nav-item">🎓<br>Education</div>
+        <div class="nav-item">🏆<br>Top</div>
+        <div class="nav-item">⚙️<br>Settings</div>
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
         tg.expand();
+
+        let selectedPair = "EUR / USD";
+        let selectedTime = "15s";
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
         }
 
-        // ОБРАБОТКА ФАЙЛА
+        // Логика выбора пары
+        function selectPair(name) {
+            selectedPair = name;
+            document.getElementById('timer-pair-name').innerText = name;
+            showScreen('screen-timer');
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        // Логика выбора времени
+        function setTimer(el, time) {
+            document.querySelectorAll('.timer-item').forEach(t => t.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTime = time;
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        // Обработка фото
         function handleFile(input) {
             const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = (e) => {
                     document.getElementById('preview-img').src = e.target.result;
                     document.getElementById('preview-img').style.display = 'block';
-                    document.getElementById('scanner-box').style.display = 'block';
-                    document.getElementById('upload-placeholder').style.display = 'none';
-                    document.getElementById('analyze-btn').style.display = 'block';
-                    document.getElementById('result-area').style.display = 'none';
-                }
+                    document.getElementById('up-text').style.display = 'none';
+                    document.getElementById('btn-analyze-img').style.display = 'block';
+                };
                 reader.readAsDataURL(file);
-                tg.HapticFeedback.impactOccurred('medium');
             }
         }
 
-        // ИМИТАЦИЯ ИИ АНАЛИЗА
-        function startAIAnalysis() {
-            const btn = document.getElementById('analyze-btn');
-            const scannerLine = document.querySelector('.scanner-line');
-            const resultBox = document.getElementById('result-area');
-            const resVal = document.getElementById('res-val');
+        // ЕДИНАЯ ЛОГИКА ГЕНЕРАЦИИ СИГНАЛА
+        function processSignal(type) {
+            const btn = type === 'manual' ? document.getElementById('btn-get-manual') : document.getElementById('btn-analyze-img');
+            const originalText = btn.innerText;
             
             btn.disabled = true;
-            btn.innerText = "Analyzing Market Data...";
-            scannerLine.style.display = 'block';
+            btn.innerHTML = `<span class="loading-dots">ANALYZING</span>`;
             
             tg.HapticFeedback.impactOccurred('heavy');
 
             setTimeout(() => {
-                scannerLine.style.display = 'none';
-                btn.style.display = 'none';
-                resultBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = originalText;
                 
-                // Логика результата
+                // Настраиваем экран результата
                 const isUp = Math.random() > 0.5;
+                const resVal = document.getElementById('res-val');
+                const resCard = document.getElementById('res-card');
+                const resPair = document.getElementById('res-pair-display');
+                
+                resPair.innerText = type === 'manual' ? `${selectedPair} (${selectedTime})` : "CHART ANALYSIS";
+                
                 if(isUp) {
                     resVal.innerText = "CALL 🟢";
                     resVal.style.color = "var(--accent)";
-                    resultBox.style.borderColor = "var(--accent)";
+                    resCard.style.borderColor = "var(--accent)";
                 } else {
                     resVal.innerText = "PUT 🔴";
                     resVal.style.color = "var(--danger)";
-                    resultBox.style.borderColor = "var(--danger)";
+                    resCard.style.borderColor = "var(--danger)";
                 }
-                
-                tg.HapticFeedback.notificationOccurred('success');
-            }, 3000); // 3 секунды "анализа"
-        }
 
-        function resetScreenshot() {
-            document.getElementById('fileInput').value = "";
-            document.getElementById('preview-img').style.display = 'none';
-            document.getElementById('scanner-box').style.display = 'none';
-            document.getElementById('upload-placeholder').style.display = 'block';
-            document.getElementById('analyze-btn').style.display = 'none';
-            document.getElementById('analyze-btn').disabled = false;
-            document.getElementById('analyze-btn').innerText = "🧠 Start AI Analysis";
-            document.getElementById('result-area').style.display = 'none';
-            showScreen('screen-home');
+                showScreen('screen-result');
+                tg.HapticFeedback.notificationOccurred('success');
+            }, 2500); // Имитация анализа 2.5 сек
         }
     </script>
 </body>
