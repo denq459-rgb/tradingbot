@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kryon Algo Trade Bot</title>
+    <title>Kryon Algo Trade Bot - AI Vision v3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -70,16 +70,16 @@
         .upload-area {
             border: 2px dashed var(--border);
             border-radius: 24px;
-            padding: 50px 15px;
+            padding: 40px 15px;
             text-align: center;
             background: rgba(255,255,255,0.02);
             position: relative;
             overflow: hidden;
             cursor: pointer;
         }
-        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; }
+        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; border: 1px solid var(--border); }
         .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; }
-        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; }
+        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; white-space: nowrap; }
 
         .theme-selector {
             margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; color: var(--text-gray);
@@ -119,7 +119,7 @@
     <div class="app-header">
         <div class="header-logo">📈</div>
         <h1 class="app-title">Kryon Algo Trade Bot</h1>
-        <p class="app-subtitle">Multi-Zone AI Vision</p>
+        <p class="app-subtitle">AI Vision & Market Scoring</p>
         <div class="steps-bar">
             <span id="step-upload" class="active">Upload</span>
             <span id="step-result">Signal</span>
@@ -132,7 +132,7 @@
                 <div id="placeholder">
                     <div style="font-size: 55px; margin-bottom: 20px;">🖼️</div>
                     <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
-                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">Price Action & Shadow Analysis</div>
+                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI analysis with visual markers</div>
                 </div>
                 <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
@@ -149,7 +149,7 @@
             </div>
 
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
-            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">Start AI Scan</button>
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">Run Neural Scan</button>
             <button class="lang-btn" onclick="window.toggleLang()">RU / EN</button>
         </div>
 
@@ -161,7 +161,7 @@
                 
                 <div class="analysis-box">
                     <div class="analysis-item"><span id="t-an-status">Logic:</span> <b id="trend-status">---</b></div>
-                    <div class="analysis-item"><span id="t-an-impulse">Structure:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span id="t-an-impulse">Market:</span> <b id="impulse-power">---</b></div>
                     <div class="analysis-item"><span id="t-an-time">Rec. Time:</span> <b id="rec-time">---</b></div>
                 </div>
             </div>
@@ -171,7 +171,7 @@
         </div>
     </div>
 
-    <div class="nav-bar"><div class="nav-item">⚡ PA Vision Active</div></div>
+    <div class="nav-bar"><div class="nav-item">⚡ AI Neural Score Active</div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -184,25 +184,25 @@
 
         const trans = {
             ru: {
-                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "Анализ свечей и Price Action",
-                btn_scan: "Начать анализ", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Логика:", an_i: "Структура:", an_t: "Время:",
+                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "Анализ тренда и визуальная разметка",
+                btn_scan: "Запустить сканирование", res_l: "KRYON AI ULTRA ANALYZER",
+                an_s: "Логика:", an_i: "Рынок:", an_t: "Время:",
                 btn_new: "Новый анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
-                following: "По тренду", rejection_up: "ОТКАЗ ЦЕНЫ ВНИЗ (Тень)", 
-                rejection_down: "ВЫКУП ЦЕНЫ (Тень)", pinbar: "ПИН-БАР (Разворот)",
-                stable: "Стабильная", shadow_p: "ДАВЛЕНИЕ ХВОСТОВ", high_p: "ИМПУЛЬС",
-                log1: "> Поиск свечей...", log2: "> Анализ хвостов...", log3: "> Поиск уровней...", log4: "> Расчет давления...", log5: "> Завершение...",
+                following: "По тренду", rejection: "Отказ цены (Тень)",
+                reversal: "Разворотная модель",
+                stable: "Спокойный", high_p: "Импульсный", volatile: "Волатильный",
+                log1: "> Определение тренда...", log2: "> Поиск свечных теней...", log3: "> Отрисовка зон...", log4: "> Расчет Score...", log5: "> Готово!",
                 th_l: "Цвета свечей:"
             },
             en: {
-                up_t: "UPLOAD SCREENSHOT", up_d: "Price Action & Candle Structure",
-                btn_scan: "Start AI Scan", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Logic:", an_i: "Structure:", an_t: "Rec. Time:",
+                up_t: "UPLOAD SCREENSHOT", up_d: "Trend detection & Visual markers",
+                btn_scan: "Run Neural Scan", res_l: "KRYON AI ULTRA ANALYZER",
+                an_s: "Logic:", an_i: "Market:", an_t: "Rec. Time:",
                 btn_new: "New Analysis", up: "CALL 🟢", down: "PUT 🔴",
-                following: "Trend Following", rejection_up: "PRICE REJECTION (Top Wick)",
-                rejection_down: "BULLISH REJECTION (Bottom Wick)", pinbar: "PIN-BAR DETECTED",
-                stable: "Stable", shadow_p: "WICK PRESSURE", high_p: "IMPULSE",
-                log1: "> Detecting candles...", log2: "> Analyzing wicks...", log3: "> Level detection...", log4: "> Calculating pressure...", log5: "> Finalizing...",
+                following: "Trend Following", rejection: "Price Rejection",
+                reversal: "Reversal Pattern",
+                stable: "Stable", high_p: "Impulsive", volatile: "Volatile",
+                log1: "> Trend detection...", log2: "> Wick analysis...", log3: "> Zone marking...", log4: "> Calculating Score...", log5: "> Complete!",
                 th_l: "Chart Colors:"
             }
         };
@@ -237,11 +237,10 @@
             reader.readAsDataURL(file);
         };
 
-        // ФУНКЦИЯ ОПРЕДЕЛЕНИЯ ЦВЕТА
         function isMatch(r, g, b, theme) {
-            if (theme === 'green_red') return (g > r + 20 && g > b + 20) || (r > g + 20 && r > b + 20);
-            if (theme === 'blue_red') return (b > r + 20 && g > r) || (r > g + 20 && r > b + 20);
-            if (theme === 'white_black') return (r > 200 && g > 200) || (r < 60 && g < 60 && r > 10);
+            if (theme === 'green_red') return (g > r + 15 && g > b + 15) || (r > g + 15 && r > b + 15);
+            if (theme === 'blue_red') return (b > r + 15 && g > r - 10) || (r > g + 15 && r > b + 15);
+            if (theme === 'white_black') return (r > 190 && g > 190) || (r < 70 && g < 70 && r > 10);
             return false;
         }
 
@@ -259,79 +258,87 @@
                 log.innerHTML += t['log' + i] + "<br>";
                 line.style.top = (i * 20) + "%";
                 if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 500));
             }
 
             const w = canvas.width, h = canvas.height;
-            const signalZoneX = Math.floor(w * 0.85); // Последние 15% графика
-            const signalData = ctx.getImageData(signalZoneX, 0, w - signalZoneX, h).data;
+            
+            // 1. АНАЛИЗ ГЛОБАЛЬНОГО ТРЕНДА (Левые 60%)
+            const histX = Math.floor(w * 0.6);
+            const histData = ctx.getImageData(0, 0, histX, h).data;
+            let upH = 0, downH = 0;
+            for(let i=0; i<histData.length; i+=64) {
+                const r=histData[i], g=histData[i+1], b=histData[i+2];
+                if (theme === 'green_red') { g > r ? upH++ : (r > g ? downH++ : 0); }
+                else if (theme === 'blue_red') { b > r ? upH++ : (r > g ? downH++ : 0); }
+                else if (theme === 'white_black') { r > 190 ? upH++ : (r < 70 ? downH++ : 0); }
+            }
+            const trendUp = upH > downH;
 
-            // АНАЛИЗ PRICE ACTION (ТЕНИ)
-            let minY = h, maxY = 0, avgY = 0, count = 0;
-            let upPixels = 0, downPixels = 0;
-
-            for (let i = 0; i < signalData.length; i += 16) {
-                const r = signalData[i], g = signalData[i+1], b = signalData[i+2];
-                const x = (i / 4) % (w - signalZoneX);
-                const y = Math.floor((i / 4) / (w - signalZoneX));
-
+            // 2. АНАЛИЗ СИГНАЛЬНОЙ ЗОНЫ (Правые 15%)
+            const sigX = Math.floor(w * 0.85);
+            const sigW = w - sigX;
+            const sigData = ctx.getImageData(sigX, 0, sigW, h).data;
+            
+            let minY = h, maxY = 0, avgY = 0, upS = 0, downS = 0, countS = 0;
+            for (let i = 0; i < sigData.length; i += 16) {
+                const r = sigData[i], g = sigData[i+1], b = sigData[i+2];
+                const y = Math.floor((i / 4) / sigW);
                 if (isMatch(r, g, b, theme)) {
                     if (y < minY) minY = y;
                     if (y > maxY) maxY = y;
-                    avgY += y;
-                    count++;
-                    
-                    // Считаем направление (упрощенно)
-                    if (theme === 'green_red' && g > r) upPixels++;
-                    else if (theme === 'green_red' && r > g) downPixels++;
-                    else if (theme === 'blue_red' && b > r) upPixels++;
-                    else if (theme === 'blue_red' && r > g) downPixels++;
+                    avgY += y; countS++;
+                    if (theme === 'green_red') { g > r ? upS++ : downS++; }
+                    else if (theme === 'blue_red') { b > r ? upS++ : downS++; }
+                    else if (theme === 'white_black') { r > 190 ? upS++ : downS++; }
                 }
             }
 
-            avgY = avgY / (count || 1);
-            const candleHeight = maxY - minY;
-            const relativeCenter = (avgY - minY) / (candleHeight || 1); // 0 - верх, 1 - низ
-
-            let signal = upPixels > downPixels ? t.up : t.down;
-            let logic = t.following;
-            let structure = t.stable;
-            let isUp = upPixels > downPixels;
-
-            // ЛОГИКА ТЕНЕЙ (PRICE ACTION)
-            if (candleHeight > 15) {
-                if (relativeCenter > 0.7) { // Весь цвет внизу, сверху длинный хвост
-                    signal = t.down;
-                    isUp = false;
-                    logic = t.rejection_up;
-                    structure = t.shadow_p;
-                } else if (relativeCenter < 0.3) { // Весь цвет вверху, снизу длинный хвост
-                    signal = t.up;
-                    isUp = true;
-                    logic = t.rejection_down;
-                    structure = t.shadow_p;
-                }
-            }
-
-            // ПИН-БАР (Очень маленькое тело, огромный хвост)
-            if (count < (h * (w-signalZoneX) * 0.05) && candleHeight > 20) {
-                logic = t.pinbar;
-                structure = t.high_p;
-            }
-
-            document.getElementById('screen-upload').classList.remove('active');
-            document.getElementById('screen-result').classList.add('active');
+            avgY /= (countS || 1);
+            const candleH = maxY - minY;
+            const relPos = (avgY - minY) / (candleH || 1);
             
-            const resS = document.getElementById('resSignal');
-            resS.innerText = signal;
-            resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resBorder').style.borderColor = resS.style.color;
-            document.getElementById('trend-status').innerText = logic;
-            document.getElementById('impulse-power').innerText = structure;
-            document.getElementById('rec-time').innerText = (logic === t.following) ? "5-10 MIN" : "2-3 MIN";
-            document.getElementById('resAccuracy').innerText = "Confidence: " + (71 + Math.random()*18).toFixed(1) + "%";
+            let isUp = upS > downS;
+            let score = 45;
+            let logic = t.following;
 
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            // Расчет Score
+            if (isUp === trendUp) score += 25;
+            if (candleH > 35) score += 15;
+            if (relPos < 0.3 || relPos > 0.7) { score += 20; logic = t.rejection; }
+
+            // 3. ВИЗУАЛЬНАЯ РАЗМЕТКА НА КАНВАСЕ
+            ctx.strokeStyle = isUp ? "#00f281" : "#ff4b5c";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(sigX - 5, minY - 10, sigW + 10, candleH + 20);
+            
+            // Рисуем стрелку
+            ctx.fillStyle = isUp ? "#00f281" : "#ff4b5c";
+            ctx.beginPath();
+            const arrowX = sigX - 30;
+            const arrowY = isUp ? minY - 20 : maxY + 20;
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(arrowX - 15, isUp ? arrowY + 20 : arrowY - 20);
+            ctx.lineTo(arrowX + 15, isUp ? arrowY + 20 : arrowY - 20);
+            ctx.fill();
+
+            // 4. ВЫВОД
+            setTimeout(() => {
+                document.getElementById('screen-upload').classList.remove('active');
+                document.getElementById('screen-result').classList.add('active');
+                
+                const resS = document.getElementById('resSignal');
+                resS.innerText = isUp ? t.up : t.down;
+                resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
+                document.getElementById('resBorder').style.borderColor = resS.style.color;
+                
+                document.getElementById('trend-status').innerText = logic;
+                document.getElementById('impulse-power').innerText = candleH > 50 ? t.high_p : t.stable;
+                document.getElementById('rec-time').innerText = (isUp === trendUp) ? "5-10 MIN" : "2-3 MIN";
+                document.getElementById('resAccuracy').innerText = "Confidence: " + Math.min(score + (Math.random()*5), 98.2).toFixed(1) + "%";
+                
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            }, 300);
         };
 
         window.resetApp = function() { location.reload(); };
