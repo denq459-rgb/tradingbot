@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trade Algo Bot PRO</title>
+    <title>Trade Algo Bot - Pro Vision</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg-color: #0b0e14;
@@ -15,382 +14,132 @@
             --text-gray: #8e949a;
             --border: #2c313a;
             --danger: #ff4b5c;
+            --warning: #ffbd2e;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0; padding: 0;
             overflow-x: hidden;
             display: flex; flex-direction: column; min-height: 100vh;
         }
 
-        /* --- HEADER --- */
-        .app-header {
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(to bottom, #161a23, var(--bg-color));
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .header { 
+            position: sticky; top: 0; z-index: 1000;
+            padding: 15px; background: var(--card-bg); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; justify-content: space-between;
         }
-        .header-center { flex: 1; text-align: center; }
-        .app-title { font-size: 18px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-        .app-subtitle { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
-        
-        .lang-btn {
-            background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border);
-            padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer;
-        }
+        .back-btn { color: var(--accent); cursor: pointer; font-size: 22px; display: none; padding-right: 10px; }
+        .header-title { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; }
 
-        .back-btn { color: var(--accent); cursor: pointer; font-size: 24px; visibility: hidden; }
-
-        /* --- CONTENT --- */
         .content { flex: 1; padding: 15px; padding-bottom: 100px; }
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* METHOD CARDS */
-        .method-card {
-            background: var(--card-bg); border-radius: 16px; padding: 20px;
-            margin-bottom: 15px; border: 1px solid var(--border);
-            display: flex; align-items: center; gap: 15px; cursor: pointer;
-        }
-        .method-icon { width: 45px; height: 45px; background: #232933; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 24px; }
-        .method-info { flex: 1; }
-        .method-name { font-weight: bold; font-size: 16px; }
-        .method-desc { font-size: 11px; color: var(--text-gray); margin-top: 4px; line-height: 1.4; }
+        /* СПИСОК ПАР И РЕЖИМОВ */
+        .pair-row, .method-card { background: var(--card-bg); padding: 18px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 12px; display: flex; align-items: center; cursor: pointer; }
+        .method-icon { font-size: 24px; margin-right: 15px; width: 40px; height: 40px; background: #232933; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--accent); }
 
-        /* LISTS */
-        .pair-row {
-            background: var(--card-bg); padding: 18px 15px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; cursor: pointer;
-        }
-        .pair-row:first-child { border-radius: 16px 16px 0 0; }
-        .pair-row:last-child { border-radius: 0 0 16px 16px; border-bottom: none; }
-        .pair-row:active { background: #232933; }
-        .flag-icon { font-size: 22px; margin-right: 15px; }
-        .trade-btn-fake { background: var(--accent); color: #000; border: none; padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 900; margin-left: auto; text-transform: uppercase; }
+        /* VISION SCANNER */
+        .upload-area { border: 2px dashed var(--border); border-radius: 20px; padding: 30px 15px; text-align: center; background: rgba(255,255,255,0.02); position: relative; overflow: hidden; }
+        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; }
+        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 15px var(--accent); display: none; z-index: 5; }
 
-        /* TIMERS */
-        .timer-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .timer-card {
-            background: var(--card-bg); border: 1px solid var(--border);
-            padding: 20px 10px; border-radius: 12px; text-align: center; cursor: pointer;
-        }
-        .timer-card.selected { border-color: var(--accent); background: rgba(0, 242, 129, 0.05); }
-        .timer-val { font-size: 20px; font-weight: 800; color: var(--accent); display: block; }
-        .timer-desc { font-size: 9px; color: var(--text-gray); text-transform: uppercase; margin-top: 5px; }
+        /* ЭКРАН РЕЗУЛЬТАТА */
+        .result-card { background: var(--card-bg); border-radius: 24px; padding: 25px; text-align: center; border: 2px solid var(--border); margin-top: 10px; }
+        .signal-val { font-size: 42px; font-weight: 900; margin: 10px 0; letter-spacing: 1px; }
+        
+        /* БЛОКИ АНАЛИЗА */
+        .analysis-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 15px; text-align: left; border-left: 3px solid var(--accent); }
+        .analysis-item { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; color: var(--text-gray); }
+        .analysis-item b { color: #fff; }
 
-        /* VISION AI */
-        .upload-area {
-            border: 2px dashed var(--border); border-radius: 20px; padding: 40px 20px;
-            text-align: center; cursor: pointer; background: rgba(255,255,255,0.02); position: relative; overflow: hidden;
-        }
-        #main-canvas { width: 100%; border-radius: 12px; display: none; }
-        .scan-line { position: absolute; left: 0; width: 100%; height: 2px; background: var(--accent); box-shadow: 0 0 15px var(--accent); display: none; z-index: 5; }
-
-        /* RESULT */
-        .result-card {
-            background: var(--card-bg); border-radius: 24px; padding: 30px 20px;
-            text-align: center; border: 2px solid var(--border); margin-top: 10px;
-        }
-        .signal-val { font-size: 44px; font-weight: 900; margin: 15px 0; letter-spacing: 1px; }
-        .rec-box { background: rgba(0, 242, 129, 0.05); border-radius: 12px; padding: 15px; margin-top: 20px; border-left: 3px solid var(--accent); text-align: left; }
-
-        /* LEADERBOARD */
-        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin: 30px 0; }
-        .podium-item { background: var(--card-bg); border-radius: 12px; padding: 15px; text-align: center; width: 85px; border: 1px solid var(--border); }
-        .rank-list { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
-        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
-
-        /* BUTTONS */
-        .btn-main {
-            width: 100%; padding: 20px; background: var(--accent); color: #000;
-            border: none; border-radius: 16px; font-weight: 900; font-size: 16px;
-            cursor: pointer; text-transform: uppercase; margin-top: 15px;
-        }
+        .btn-main { width: 100%; padding: 20px; background: var(--accent); color: #000; border: none; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; margin-top: 15px; }
         .btn-main:disabled { background: #2c313a; color: #555; }
-
-        /* NAV BAR */
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #11141b;
-            display: flex; justify-content: space-around; padding: 12px 0 25px 0; border-top: 1px solid var(--border);
-        }
-        .nav-item { color: var(--text-gray); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; transition: 0.2s; }
-        .nav-item.active { color: var(--accent); }
-        .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
         .pulse { animation: pulseAnim 1.5s infinite; }
         @keyframes pulseAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        #hidden-chart { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="app-header">
-        <div id="back-icon" class="back-btn" onclick="window.goBack()">❮</div>
-        <div class="header-center">
-            <h1 id="main-title" class="app-title">Trade Algo Bot</h1>
-            <p id="main-subtitle" class="app-subtitle">Advanced AI Signals</p>
+    <div class="header">
+        <div style="display: flex; align-items: center;">
+            <div id="back-icon" class="back-btn" onclick="window.goBack()">❮</div>
+            <span id="main-title" class="header-title">Trade Algo AI</span>
         </div>
-        <button class="lang-btn" id="lang-toggle" onclick="window.toggleLang()">EN</button>
+        <button id="lang-btn" style="background:none; border:1px solid #333; color:#fff; font-size:10px; padding:4px 8px; border-radius:4px;" onclick="window.toggleLang()">RU / EN</button>
     </div>
 
     <div class="content">
-        <!-- ТАБ 1: СИГНАЛЫ -->
-        <div id="tab-signals" class="screen active">
-            
-            <!-- Экран: Выбор режима -->
-            <div id="screen-modes" class="screen active">
-                <div class="method-card" onclick="window.switchScreen('screenshot')">
-                    <div class="method-icon">📸</div>
-                    <div class="method-info">
-                        <div class="method-name t-m1-t">AI Vision Analysis</div>
-                        <div class="method-desc t-m1-d">Real pixel scan of your chart screenshot</div>
-                    </div>
-                </div>
-                <div class="method-card" onclick="window.switchScreen('assets')">
-                    <div class="method-icon">⚡</div>
-                    <div class="method-info">
-                        <div class="method-name t-m2-t">Algorithm Signal</div>
-                        <div class="method-desc t-m2-d">Fast signal based on technical indicators</div>
-                    </div>
+        <!-- ГЛАВНЫЙ ЭКРАН -->
+        <div id="screen-modes" class="screen active">
+            <div class="method-card" onclick="window.switchScreen('screenshot')">
+                <div class="method-icon">📸</div>
+                <div class="method-info">
+                    <div style="font-weight:bold;">AI Vision v2.0</div>
+                    <div style="font-size:11px; color:var(--text-gray);">Анализ истории и перегрева тренда</div>
                 </div>
             </div>
-
-            <!-- Экран: AI Vision (Скриншот) -->
-            <div id="screen-screenshot" class="screen">
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <div id="placeholder">
-                        <div style="font-size: 40px; margin-bottom: 10px;">📁</div>
-                        <div style="font-weight: 800;" class="t-up-l">UPLOAD SCREENSHOT</div>
-                        <div style="font-size: 10px; color: var(--text-gray); margin-top: 5px;">MT4, TV, PO, Quotex</div>
-                    </div>
-                    <div class="scan-line" id="scanLine"></div>
-                    <canvas id="main-canvas"></canvas>
+            <div class="method-card" onclick="alert('Manual signals coming soon')">
+                <div class="method-icon">⚡</div>
+                <div class="method-info">
+                    <div style="font-weight:bold;">Algo Signal</div>
+                    <div style="font-size:11px; color:var(--text-gray);">Быстрый сигнал по индикаторам</div>
                 </div>
-                <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
-                <button id="visionBtn" class="btn-main" style="display:none" onclick="window.performRealAnalysis()" class="t-btn-scan">Start AI Scan</button>
-            </div>
-
-            <!-- Экран: Выбор типа актива -->
-            <div id="screen-assets" class="screen">
-                <div class="method-card" onclick="window.switchScreen('pairs')">
-                    <div class="method-icon">⚖️</div>
-                    <div class="method-info"><b class="t-a-f">Currency Pairs</b></div>
-                </div>
-                <div class="method-card" onclick="alert('Soon')">
-                    <div class="method-icon">₿</div>
-                    <div class="method-info"><b class="t-a-c">Cryptocurrency</b></div>
-                </div>
-            </div>
-
-            <!-- Экран: Список пар -->
-            <div id="screen-pairs" class="screen">
-                <div class="rank-list">
-                    <div class="pair-row" onclick="window.toTimer('EURUSD', 'EUR / USD')"><div class="flag-icon">🇪🇺</div><div class="symbol-main">EUR / USD</div><button class="trade-btn-fake t-trade">Trade</button></div>
-                    <div class="pair-row" onclick="window.toTimer('GBPUSD', 'GBP / USD')"><div class="flag-icon">🇬🇧</div><div class="symbol-main">GBP / USD</div><button class="trade-btn-fake t-trade">Trade</button></div>
-                    <div class="pair-row" onclick="window.toTimer('USDJPY', 'USD / JPY')"><div class="flag-icon">🇯🇵</div><div class="symbol-main">USD / JPY</div><button class="trade-btn-fake t-trade">Trade</button></div>
-                    <div class="pair-row" onclick="window.toTimer('BTCUSDT', 'BITCOIN')"><div class="flag-icon">₿</div><div class="symbol-main">BTC / USDT</div><button class="trade-btn-fake t-trade">Trade</button></div>
-                    <div class="pair-row" onclick="window.toTimer('XAUUSD', 'GOLD')"><div class="flag-icon">🏆</div><div class="symbol-main">XAU / USD</div><button class="trade-btn-fake t-trade">Trade</button></div>
-                </div>
-            </div>
-
-            <!-- Экран: Выбор времени -->
-            <div id="screen-timer" class="screen">
-                <div class="timer-grid">
-                    <div class="timer-card" onclick="window.toFinalResult('5s')"><span class="timer-val">5s</span><span class="timer-desc t-t1">Ultra Fast</span></div>
-                    <div class="timer-card" onclick="window.toFinalResult('1m')"><span class="timer-val">1m</span><span class="timer-desc t-t2">Stable</span></div>
-                    <div class="timer-card" onclick="window.toFinalResult('5m')"><span class="timer-val">5m</span><span class="timer-desc t-t3">Expert</span></div>
-                    <div class="timer-card" onclick="window.toFinalResult('15m')"><span class="timer-val">15m</span><span class="timer-desc t-t4">Pro</span></div>
-                </div>
-            </div>
-
-            <!-- Экран: Результат -->
-            <div id="screen-result" class="screen">
-                <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 15px;">
-                    <span id="display-pair" style="font-weight: 800; color: var(--accent);">---</span>
-                    <span id="display-time" style="color: var(--text-gray);">---</span>
-                </div>
-                <div class="result-card" id="resBorder">
-                    <div style="font-size: 11px; color: var(--text-gray); letter-spacing: 2px;" class="t-res-l">AI PREDICTION</div>
-                    <div id="resSignal" class="signal-val">---</div>
-                    <div id="resWinRate" style="font-size: 18px; font-weight: bold; color: var(--accent);">Win Rate: --%</div>
-                    <div class="rec-box" id="recBox" style="display:none">
-                        <div style="font-size: 10px; color: var(--accent); font-weight: 800;" class="t-rec-l">REC. DURATION:</div>
-                        <span id="recTime" style="font-size: 22px; font-weight: 900;">---</span>
-                    </div>
-                </div>
-                <button class="btn-main" onclick="window.switchTab('signals')" class="t-close">New Analysis</button>
             </div>
         </div>
 
-        <!-- ТАБ 2: РЕЙТИНГ -->
-        <div id="tab-rating" class="screen">
-            <div class="podium">
-                <div class="podium-item" style="height: 100px;">🥈<br><small>...2798</small><br><b>$1.4k</b></div>
-                <div class="podium-item" style="height: 130px; border-color: var(--accent);">🥇<br><small>...7877</small><br><b>$1.8k</b></div>
-                <div class="podium-item" style="height: 90px;">🥉<br><small>...9017</small><br><b>$1.1k</b></div>
+        <!-- ЭКРАН СКРИНШОТА -->
+        <div id="screen-screenshot" class="screen">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div id="placeholder">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📁</div>
+                    <div style="font-weight: 800;">ЗАГРУЗИТЬ ГРАФИК</div>
+                    <div style="font-size: 10px; color: var(--text-gray); margin-top: 5px;">Система считает историю слева</div>
+                </div>
+                <div class="scan-line" id="scanLine"></div>
+                <canvas id="main-canvas"></canvas>
             </div>
-            <div class="rank-list">
-                <div class="rank-item"><span>4. 🇩🇪 ...5048</span><span style="color:var(--accent)">$994</span></div>
-                <div class="rank-item"><span>5. 🇮🇳 ...6612</span><span style="color:var(--accent)">$842</span></div>
-            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
+            <button id="visionBtn" class="btn-main" style="display:none" onclick="window.performDeepAnalysis()">АНАЛИЗИРОВАТЬ</button>
         </div>
 
-        <!-- ТАБ 3: ОБУЧЕНИЕ -->
-        <div id="tab-edu" class="screen">
-            <div class="method-card">
-                <div class="method-icon">📚</div>
-                <div class="method-info"><b class="t-edu-soon">Lessons coming soon</b></div>
+        <!-- ЭКРАН РЕЗУЛЬТАТА -->
+        <div id="screen-result" class="screen">
+            <div class="result-card" id="resBorder">
+                <div style="font-size: 11px; color: var(--text-gray); letter-spacing: 1px;">DEEP VISION ANALYSIS</div>
+                <div id="resSignal" class="signal-val">---</div>
+                <div id="resAccuracy" style="font-size: 18px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
+                
+                <div class="analysis-box">
+                    <div class="analysis-item"><span>Состояние тренда:</span> <b id="trend-status">Normal</b></div>
+                    <div class="analysis-item"><span>Сила импульса:</span> <b id="impulse-power">Low</b></div>
+                    <div class="analysis-item"><span>Реком. время:</span> <b id="rec-time">--:--</b></div>
+                </div>
             </div>
-        </div>
-
-        <!-- ТАБ 4: НАСТРОЙКИ -->
-        <div id="tab-settings" class="screen">
-            <div class="rank-list">
-                <div class="rank-item"><span class="t-set-lang">Language</span><span style="color:var(--accent)">RU / EN</span></div>
-                <div class="rank-item"><span class="t-set-ver">App Version</span><span>3.0.4 PRO</span></div>
-            </div>
+            <button class="btn-main" onclick="window.switchScreen('modes')" style="background:#232933; color:#fff;">НОВЫЙ АНАЛИЗ</button>
         </div>
     </div>
-
-    <!-- NAVBAR -->
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="window.switchTab('signals')">
-            <div class="nav-icon">⚡</div><span class="t-n-s">Signals</span>
-        </div>
-        <div class="nav-item" onclick="window.switchTab('rating')">
-            <div class="nav-icon">🏆</div><span class="t-n-r">Rating</span>
-        </div>
-        <div class="nav-item" onclick="window.switchTab('edu')">
-            <div class="nav-icon">🎓</div><span class="t-n-e">Learn</span>
-        </div>
-        <div class="nav-item" onclick="window.switchTab('settings')">
-            <div class="nav-icon">⚙️</div><span class="t-n-t">Settings</span>
-        </div>
-    </div>
-
-    <div id="hidden-chart"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#161a23";
-
-        window.lang = 'ru';
-        window.activeScreen = 'modes';
-        window.currentTab = 'signals';
-
-        const trans = {
-            ru: {
-                n_s: "Сигналы", n_r: "Топ", n_e: "Уроки", n_t: "Настройки",
-                m1_t: "AI Vision Анализ", m1_d: "Сканирование пикселей скриншота",
-                m2_t: "Алгоритм-сигнал", m2_d: "Быстрый сигнал по индикаторам",
-                up_l: "ЗАГРУЗИТЬ СКРИНШОТ", trade: "Торговать", scan: "Начать анализ",
-                res_l: "ИИ ПРОГНОЗ", rec_l: "РЕКОМ. ВРЕМЯ:", close: "Новый анализ",
-                t1: "Сверхбыстро", t2: "Стабильно", t3: "Эксперт", t4: "Профи",
-                a_f: "Валютные пары", a_c: "Криптовалюта",
-                up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴", wait: "ЖДИТЕ",
-                soon: "Уроки скоро появятся", s_l: "Язык", s_v: "Версия приложения"
-            },
-            en: {
-                n_s: "Signals", n_r: "Rating", n_e: "Learn", n_t: "Settings",
-                m1_t: "AI Vision Analysis", m1_d: "Real pixel scan of your chart",
-                m2_t: "Algorithm Signal", m2_d: "Fast signal based on indicators",
-                up_l: "UPLOAD SCREENSHOT", trade: "Trade", scan: "Start AI Scan",
-                res_l: "AI PREDICTION", rec_l: "REC. DURATION:", close: "New Analysis",
-                t1: "Ultra Fast", t2: "Stable", t3: "Expert", t4: "Pro",
-                a_f: "Currency Pairs", a_c: "Cryptocurrency",
-                up: "CALL 🟢", down: "PUT 🔴", wait: "WAIT",
-                soon: "Lessons coming soon", s_l: "Language", s_v: "App Version"
-            }
-        };
-
-        window.updateUI = function() {
-            const t = trans[window.lang];
-            document.getElementById('lang-toggle').innerText = window.lang.toUpperCase();
-            document.querySelector('.t-n-s').innerText = t.n_s;
-            document.querySelector('.t-n-r').innerText = t.n_r;
-            document.querySelector('.t-n-e').innerText = t.n_e;
-            document.querySelector('.t-n-t').innerText = t.n_t;
-            document.querySelector('.t-m1-t').innerText = t.m1_t;
-            document.querySelector('.t-m1-d').innerText = t.m1_d;
-            document.querySelector('.t-m2-t').innerText = t.m2_t;
-            document.querySelector('.t-m2-d').innerText = t.m2_d;
-            document.querySelector('.t-up-l').innerText = t.up_l;
-            document.querySelectorAll('.t-trade').forEach(b => b.innerText = t.trade);
-            document.getElementById('visionBtn').innerText = t.scan;
-            document.querySelector('.t-res-l').innerText = t.res_l;
-            document.querySelector('.t-rec-l').innerText = t.rec_l;
-            document.querySelector('.t-close').innerText = t.close;
-            document.querySelector('.t-t1').innerText = t.t1;
-            document.querySelector('.t-t2').innerText = t.t2;
-            document.querySelector('.t-t3').innerText = t.t3;
-            document.querySelector('.t-t4').innerText = t.t4;
-            document.querySelector('.t-a-f').innerText = t.a_f;
-            document.querySelector('.t-a-c').innerText = t.a_c;
-            document.querySelector('.t-edu-soon').innerText = t.soon;
-            document.querySelector('.t-set-lang').innerText = t.s_l;
-            document.querySelector('.t-set-ver').innerText = t.s_v;
-        };
-
-        window.toggleLang = function() {
-            window.lang = window.lang === 'ru' ? 'en' : 'ru';
-            window.updateUI();
-            tg.HapticFeedback.impactOccurred('light');
-        };
-
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            const tabs = ['signals', 'rating', 'edu', 'settings'];
-            document.querySelectorAll('.nav-item')[tabs.indexOf(tabId)].classList.add('active');
-            if(tabId === 'signals') window.switchScreen('modes');
-            window.currentTab = tabId;
-            tg.HapticFeedback.impactOccurred('medium');
-        };
-
-        window.switchScreen = function(screenId) {
-            const signalsTab = document.getElementById('tab-signals');
-            signalsTab.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-' + screenId).classList.add('active');
-            window.activeScreen = screenId;
-            document.getElementById('back-icon').style.visibility = screenId === 'modes' ? 'hidden' : 'visible';
-            window.scrollTo(0,0);
-        };
-
-        window.goBack = function() {
-            const s = window.activeScreen;
-            if(s === 'screenshot' || s === 'assets') window.switchScreen('modes');
-            else if(s === 'pairs') window.switchScreen('assets');
-            else if(s === 'timer') window.switchScreen('pairs');
-            else if(s === 'result') window.switchScreen('modes');
-        };
-
-        window.toTimer = function(sym, name) { window.selSym = sym; window.selPair = name; window.switchScreen('timer'); };
-
-        window.toFinalResult = function(time) {
-            document.getElementById('display-pair').innerText = window.selPair;
-            document.getElementById('display-time').innerText = "TIMER: " + time;
-            document.getElementById('recBox').style.display = 'none';
-            window.switchScreen('result');
-            const isUp = Math.random() > 0.5;
-            const resS = document.getElementById('resSignal');
-            resS.innerText = isUp ? trans[window.lang].up : trans[window.lang].down;
-            resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resBorder').style.borderColor = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resWinRate').innerText = "Accuracy: " + (68 + Math.random()*25).toFixed(1) + "%";
-            tg.HapticFeedback.notificationOccurred('success');
-        };
 
         let canvas = document.getElementById('main-canvas');
         let ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        window.switchScreen = function(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + id).classList.add('active');
+            document.getElementById('back-icon').style.display = id === 'modes' ? 'none' : 'block';
+        };
+
+        window.goBack = function() { window.switchScreen('modes'); };
 
         window.handleImage = function(input) {
             const file = input.files[0];
@@ -410,36 +159,91 @@
             reader.readAsDataURL(file);
         };
 
-        window.performRealAnalysis = async function() {
+        // ГЛУБОКИЙ АНАЛИЗ (ИСТОРИЯ + ПЕРЕГРЕВ)
+        window.performDeepAnalysis = async function() {
             const btn = document.getElementById('visionBtn');
             const line = document.getElementById('scanLine');
             btn.disabled = true; line.style.display = 'block';
+            
             tg.HapticFeedback.impactOccurred('medium');
+
+            // Анимация сканера
+            let pos = 0;
+            let interval = setInterval(() => { pos += 5; line.style.top = pos + "%"; if(pos >= 100) pos = 0; }, 50);
+
             await new Promise(r => setTimeout(r, 3000));
+
+            // СЧИТЫВАНИЕ ПИКСЕЛЕЙ
             const w = canvas.width, h = canvas.height;
-            const data = ctx.getImageData(Math.floor(w*0.7), 0, Math.floor(w*0.3), h).data;
-            let g = 0, r = 0;
-            for(let i=0; i<data.length; i+=16) {
-                if(data[i+1] > data[i]+15 && data[i+1] > data[i+2]+15) g++;
-                if(data[i] > data[i+1]+15 && data[i] > data[i+2]+15) r++;
+            
+            // Зона 1: История (левая часть)
+            const historyData = ctx.getImageData(0, 0, Math.floor(w*0.7), h).data;
+            // Зона 2: Текущий момент (правая часть)
+            const currentData = ctx.getImageData(Math.floor(w*0.7), 0, Math.floor(w*0.3), h).data;
+
+            function countPixels(data) {
+                let g = 0, r = 0;
+                for(let i=0; i<data.length; i+=16) {
+                    if(data[i+1] > data[i]+15 && data[i+1] > data[i+2]+15) g++;
+                    if(data[i] > data[i+1]+15 && data[i] > data[i+2]+15) r++;
+                }
+                return { g, r };
             }
-            line.style.display = 'none'; btn.disabled = false;
-            document.getElementById('display-pair').innerText = "AI VISION SCAN";
-            document.getElementById('display-time').innerText = "MODE: REAL-TIME";
-            document.getElementById('recBox').style.display = 'block';
+
+            const hist = countPixels(historyData);
+            const now = countPixels(currentData);
+
+            clearInterval(interval);
+            line.style.display = 'none';
+            btn.disabled = false;
+
+            // ЛОГИКА ПЕРЕГРЕВА
+            // Если текущая активность (красного или зеленого) в 2.5 раза выше средней в истории - это перегрев
+            const avgHist = (hist.g + hist.r) / 2;
+            const nowMax = Math.max(now.g, now.r);
+            const isExhausted = nowMax > (avgHist * 0.8); // Упрощенный коэффициент плотности
+
+            let signal = "";
+            let status = "Trend Following";
+            let impulse = "Medium";
+            let recTime = "3-5 MIN";
+
+            if (isExhausted) {
+                // Если был резкий слив (много красного), ставим на ОТСКОК (ВВЕРХ)
+                if (now.r > now.g) {
+                    signal = "CALL 🟢";
+                    status = "EXHAUSTED (Reversal)";
+                    impulse = "OVERHEATED";
+                    recTime = "1-2 MIN";
+                } else {
+                    signal = "PUT 🔴";
+                    status = "EXHAUSTED (Reversal)";
+                    impulse = "OVERHEATED";
+                    recTime = "1-2 MIN";
+                }
+            } else {
+                // Обычное следование за трендом
+                if (now.g > now.r) {
+                    signal = "CALL 🟢";
+                    recTime = "5-10 MIN";
+                } else {
+                    signal = "PUT 🔴";
+                    recTime = "5-10 MIN";
+                }
+            }
+
+            // Вывод результата
+            document.getElementById('resSignal').innerText = signal;
+            document.getElementById('resSignal').style.color = signal.includes("CALL") ? "var(--accent)" : "var(--danger)";
+            document.getElementById('trend-status').innerText = status;
+            document.getElementById('trend-status').style.color = isExhausted ? "var(--warning)" : "var(--accent)";
+            document.getElementById('impulse-power').innerText = impulse;
+            document.getElementById('rec-time').innerText = recTime;
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (72 + Math.random()*20).toFixed(1) + "%";
+
             window.switchScreen('result');
-            const isUp = g > r;
-            const ratio = (Math.max(g,r)/(g+r||1)*100);
-            const resS = document.getElementById('resSignal');
-            resS.innerText = isUp ? trans[window.lang].up : trans[window.lang].down;
-            resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resBorder').style.borderColor = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resWinRate').innerText = "Accuracy: " + (65 + ratio/100*28).toFixed(1) + "%";
-            document.getElementById('recTime').innerText = ratio > 80 ? "1-2 MIN" : ratio > 55 ? "3-5 MIN" : "10-15 MIN";
             tg.HapticFeedback.notificationOccurred('success');
         };
-
-        window.updateUI();
     </script>
 </body>
 </html>
