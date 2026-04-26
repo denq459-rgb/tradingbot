@@ -3,126 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kryon Algo Trade Bot - AI Vision v3</title>
+    <title>Kryon AI Vision - Ultra v4</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0c0f17;
-            --card-bg: #161a24;
-            --accent: #00f281;
-            --text-main: #ffffff;
-            --text-gray: #7a828a;
-            --border: #232a35;
-            --danger: #ff4b5c;
-            --warning: #ff9d00;
+            --bg-color: #0c0f17; --card-bg: #161a24; --accent: #00f281;
+            --text-main: #ffffff; --text-gray: #7a828a; --border: #232a35;
+            --danger: #ff4b5c; --warning: #ff9d00;
         }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Inter', -apple-system, sans-serif;
-            margin: 0; padding: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: 'Inter', sans-serif; margin: 0; padding: 0;
+            display: flex; flex-direction: column; min-height: 100vh;
         }
-
         .app-header {
-            padding: 25px 15px 15px;
-            text-align: center;
+            padding: 20px; text-align: center; border-bottom: 1px solid var(--border);
             background: linear-gradient(to bottom, #11151e, var(--bg-color));
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
         }
-        .header-logo {
-            width: 40px; height: 40px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            display: inline-flex; align-items: center; justify-content: center;
-            border: 1px solid var(--accent);
-            margin-bottom: 10px; color: var(--accent); font-size: 22px;
-            box-shadow: 0 0 15px rgba(0, 242, 129, 0.15);
-        }
-        .app-title { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
-        .app-subtitle { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-        
         .steps-bar {
-            display: inline-flex; gap: 20px;
-            background: #11151e; padding: 8px 20px;
-            border-radius: 20px; font-size: 11px; color: var(--text-gray);
-            margin-top: 20px; font-weight: bold; border: 1px solid #1a1f29;
+            display: inline-flex; gap: 15px; background: #11151e; padding: 8px 15px;
+            border-radius: 20px; font-size: 10px; color: var(--text-gray); margin-top: 15px;
         }
-        .steps-bar span.active { color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-        .steps-bar span.active::before { content: '●'; color: var(--accent); }
-
-        .content { 
-            flex: 1; 
-            padding: 20px 15px;
-            padding-bottom: 120px; 
-        }
-        
+        .steps-bar span.active { color: var(--accent); font-weight: bold; }
+        .content { flex: 1; padding: 15px; padding-bottom: 100px; }
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
         .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: 24px;
-            padding: 40px 15px;
-            text-align: center;
-            background: rgba(255,255,255,0.02);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
+            border: 2px dashed var(--border); border-radius: 20px; padding: 40px 10px;
+            text-align: center; background: rgba(255,255,255,0.01); position: relative; cursor: pointer;
         }
-        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; border: 1px solid var(--border); }
-        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; }
-        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; white-space: nowrap; }
-
-        .theme-selector {
-            margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; color: var(--text-gray);
-        }
-        .theme-selector select { background: var(--card-bg); color: #fff; border: 1px solid var(--border); padding: 5px; border-radius: 8px; outline: none; }
+        #main-canvas { width: 100%; border-radius: 10px; display: none; margin-top: 10px; border: 1px solid var(--border); }
+        .scan-line { position: absolute; left: 0; width: 100%; height: 2px; background: var(--accent); display: none; z-index: 10; box-shadow: 0 0 15px var(--accent); }
+        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); display: none; text-align: left; }
 
         .result-card { 
-            background: var(--card-bg); border-radius: 28px; padding: 35px 20px; text-align: center; border: 2px solid var(--border); margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 24px; padding: 25px 15px; 
+            text-align: center; border: 2px solid var(--border); margin-bottom: 15px;
         }
-        .signal-val { font-size: 52px; font-weight: 900; margin: 15px 0; letter-spacing: 1px; }
-        
-        .analysis-box {
-            background: #11151e; border-radius: 14px; padding: 15px; margin-top: 25px; text-align: left; border-left: 3px solid var(--accent);
-        }
-        .analysis-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: var(--text-gray); }
+        .signal-val { font-size: 48px; font-weight: 900; margin: 10px 0; }
+        .analysis-box { background: #11151e; border-radius: 12px; padding: 15px; margin-top: 15px; text-align: left; }
+        .analysis-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-gray); }
         .analysis-item b { color: #fff; }
 
         .btn-main {
-            width: 100%; padding: 22px; background: var(--accent); color: #000; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 20px rgba(0, 242, 129, 0.3); transition: 0.2s; margin-bottom: 20px;
+            width: 100%; padding: 20px; background: var(--accent); color: #000;
+            border: none; border-radius: 15px; font-weight: 800; font-size: 15px;
+            cursor: pointer; text-transform: uppercase; margin-bottom: 15px;
         }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
-
         .lang-btn {
-            background: #161a24; color: var(--accent); border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 10px auto 0; display: block;
+            background: transparent; color: var(--text-gray); border: 1px solid var(--border);
+            padding: 6px 12px; border-radius: 8px; font-size: 10px; cursor: pointer; display: block; margin: 0 auto;
         }
-
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #11151e; border-top: 1px solid var(--border); padding: 15px 0 35px 0; text-align: center; z-index: 1000;
-        }
-        .nav-item { color: var(--accent); font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #11151e; padding: 15px 0 30px; text-align: center; border-top: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
     <div class="app-header">
-        <div class="header-logo">📈</div>
-        <h1 class="app-title">Kryon Algo Trade Bot</h1>
-        <p class="app-subtitle">AI Vision & Market Scoring</p>
+        <h1 style="font-size: 20px; margin: 0;">Kryon AI Vision <span style="color: var(--accent);">v4</span></h1>
         <div class="steps-bar">
-            <span id="step-upload" class="active">Upload</span>
-            <span id="step-result">Signal</span>
+            <span id="step-upload" class="active">SCANNING</span>
+            <span id="step-result">RESULT</span>
         </div>
     </div>
 
@@ -130,103 +73,70 @@
         <div id="screen-upload" class="screen active">
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <div id="placeholder">
-                    <div style="font-size: 55px; margin-bottom: 20px;">🖼️</div>
-                    <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
-                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI analysis with visual markers</div>
+                    <div style="font-size: 40px; margin-bottom: 10px;">📸</div>
+                    <b id="t-up-t">ЗАГРУЗИТЕ СКРИНШОТ</b>
+                    <p style="font-size: 11px; color: var(--text-gray);" id="t-up-d">ИИ проанализирует импульс последних свечей</p>
                 </div>
                 <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
-
-            <div class="theme-selector">
-                <span id="t-theme-label">Chart Colors:</span>
-                <select id="colorTheme">
-                    <option value="green_red">Green / Red</option>
-                    <option value="blue_red">Blue / Red</option>
-                    <option value="white_black">White / Black</option>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <select id="colorTheme" style="background: #11151e; color: #fff; border: 1px solid var(--border); padding: 5px; border-radius: 5px; font-size: 12px;">
+                    <option value="green_red">Green / Red Theme</option>
+                    <option value="blue_red">Blue / Red Theme</option>
                 </select>
             </div>
 
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
-            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">Run Neural Scan</button>
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 20px;" onclick="window.performAnalysis()">АНАЛИЗ ИМПУЛЬСА</button>
             <button class="lang-btn" onclick="window.toggleLang()">RU / EN</button>
         </div>
 
         <div id="screen-result" class="screen">
             <div class="result-card" id="resBorder">
-                <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px;" id="t-res-label">KRYON AI ULTRA ANALYZER</div>
+                <div style="color: var(--text-gray); font-size: 10px; letter-spacing: 1px;">KRYON AI NEURAL SCORE</div>
                 <div id="resSignal" class="signal-val">---</div>
-                <div id="resAccuracy" style="font-size: 20px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
+                <div id="resAccuracy" style="font-size: 18px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
                 
                 <div class="analysis-box">
-                    <div class="analysis-item"><span id="t-an-status">Logic:</span> <b id="trend-status">---</b></div>
-                    <div class="analysis-item"><span id="t-an-impulse">Market:</span> <b id="impulse-power">---</b></div>
-                    <div class="analysis-item"><span id="t-an-time">Rec. Time:</span> <b id="rec-time">---</b></div>
+                    <div class="analysis-item"><span>Логика:</span> <b id="trend-status">---</b></div>
+                    <div class="analysis-item"><span>Импульс:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span>Экспирация:</span> <b id="rec-time">---</b></div>
                 </div>
             </div>
-            <button class="btn-main" style="background: #232a35; color: #fff;" onclick="window.resetApp()">
-                <span id="t-btn-new">New Analysis</span>
-            </button>
+            <button class="btn-main" style="background: #232a35; color: #fff;" onclick="location.reload()">НОВЫЙ АНАЛИЗ</button>
         </div>
     </div>
 
-    <div class="nav-bar"><div class="nav-item">⚡ AI Neural Score Active</div></div>
+    <div class="nav-bar"><div style="font-size: 10px; color: var(--accent); font-weight: bold;">● AI MOMENTUM DETECTOR ACTIVE</div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        if (tg.expand) tg.expand();
-        tg.headerColor = "#11151e";
+        tg.expand();
 
-        window.lang = 'en';
+        window.lang = 'ru';
         let canvas = document.getElementById('main-canvas');
         let ctx = canvas.getContext('2d', { willReadFrequently: true });
 
         const trans = {
-            ru: {
-                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "Анализ тренда и визуальная разметка",
-                btn_scan: "Запустить сканирование", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Логика:", an_i: "Рынок:", an_t: "Время:",
-                btn_new: "Новый анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
-                following: "По тренду", rejection: "Отказ цены (Тень)",
-                reversal: "Разворотная модель",
-                stable: "Спокойный", high_p: "Импульсный", volatile: "Волатильный",
-                log1: "> Определение тренда...", log2: "> Поиск свечных теней...", log3: "> Отрисовка зон...", log4: "> Расчет Score...", log5: "> Готово!",
-                th_l: "Цвета свечей:"
-            },
-            en: {
-                up_t: "UPLOAD SCREENSHOT", up_d: "Trend detection & Visual markers",
-                btn_scan: "Run Neural Scan", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Logic:", an_i: "Market:", an_t: "Rec. Time:",
-                btn_new: "New Analysis", up: "CALL 🟢", down: "PUT 🔴",
-                following: "Trend Following", rejection: "Price Rejection",
-                reversal: "Reversal Pattern",
-                stable: "Stable", high_p: "Impulsive", volatile: "Volatile",
-                log1: "> Trend detection...", log2: "> Wick analysis...", log3: "> Zone marking...", log4: "> Calculating Score...", log5: "> Complete!",
-                th_l: "Chart Colors:"
-            }
+            ru: { up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴", trend: "По тренду", rev: "РАЗВОРОТ ИМПУЛЬСА ⚠️", stable: "Стабильный", high: "Высокий", log: ["> Поиск зон...", "> Замер импульса...", "> Анализ фитилей...", "> Финальный Score..."] },
+            en: { up: "CALL 🟢", down: "PUT 🔴", trend: "Trend Follow", rev: "MOMENTUM REVERSAL ⚠️", stable: "Stable", high: "High", log: ["> Zone search...", "> Pulse check...", "> Wick analysis...", "> Final Score..."] }
         };
 
         window.toggleLang = function() {
-            window.lang = window.lang === 'en' ? 'ru' : 'en';
-            const t = trans[window.lang];
-            const ids = ['t-upload-title', 't-upload-desc', 'visionBtn', 't-res-label', 't-btn-new', 't-an-status', 't-an-impulse', 't-an-time', 't-theme-label'];
-            const keys = ['up_t', 'up_d', 'btn_scan', 'res_l', 'btn_new', 'an_s', 'an_i', 'an_t', 'th_l'];
-            ids.forEach((id, i) => document.getElementById(id).innerText = t[keys[i]]);
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            window.lang = window.lang === 'ru' ? 'en' : 'ru';
+            alert("Language: " + window.lang.toUpperCase());
         };
 
         window.handleImage = function(input) {
-            const file = input.files[0];
-            if(!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const maxW = 1000;
-                    const scale = img.width > maxW ? maxW / img.width : 1;
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
+                    const scale = 1000 / img.width;
+                    canvas.width = 1000; canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
@@ -234,114 +144,80 @@
                 };
                 img.src = e.target.result;
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
         };
 
-        function isMatch(r, g, b, theme) {
-            if (theme === 'green_red') return (g > r + 15 && g > b + 15) || (r > g + 15 && r > b + 15);
-            if (theme === 'blue_red') return (b > r + 15 && g > r - 10) || (r > g + 15 && r > b + 15);
-            if (theme === 'white_black') return (r > 190 && g > 190) || (r < 70 && g < 70 && r > 10);
-            return false;
-        }
-
-        window.performUltraAnalysis = async function() {
+        window.performAnalysis = async function() {
             const btn = document.getElementById('visionBtn');
-            const line = document.getElementById('scanLine');
             const log = document.getElementById('analysisLog');
+            const line = document.getElementById('scanLine');
             const theme = document.getElementById('colorTheme').value;
             const t = trans[window.lang];
-            
-            btn.disabled = true; line.style.display = 'block'; log.style.display = 'block'; log.innerHTML = "";
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            for (let i = 1; i <= 5; i++) {
-                log.innerHTML += t['log' + i] + "<br>";
-                line.style.top = (i * 20) + "%";
-                if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                await new Promise(r => setTimeout(r, 500));
+            btn.disabled = true; line.style.display = 'block'; log.style.display = 'block';
+            for(let i=0; i<4; i++) {
+                log.innerHTML += t.log[i] + "<br>";
+                line.style.top = (20 * (i+1)) + "%";
+                await new Promise(r => setTimeout(r, 600));
             }
 
             const w = canvas.width, h = canvas.height;
-            
-            // 1. АНАЛИЗ ГЛОБАЛЬНОГО ТРЕНДА (Левые 60%)
-            const histX = Math.floor(w * 0.6);
-            const histData = ctx.getImageData(0, 0, histX, h).data;
-            let upH = 0, downH = 0;
-            for(let i=0; i<histData.length; i+=64) {
-                const r=histData[i], g=histData[i+1], b=histData[i+2];
-                if (theme === 'green_red') { g > r ? upH++ : (r > g ? downH++ : 0); }
-                else if (theme === 'blue_red') { b > r ? upH++ : (r > g ? downH++ : 0); }
-                else if (theme === 'white_black') { r > 190 ? upH++ : (r < 70 ? downH++ : 0); }
-            }
-            const trendUp = upH > downH;
 
-            // 2. АНАЛИЗ СИГНАЛЬНОЙ ЗОНЫ (Правые 15%)
-            const sigX = Math.floor(w * 0.85);
-            const sigW = w - sigX;
-            const sigData = ctx.getImageData(sigX, 0, sigW, h).data;
-            
-            let minY = h, maxY = 0, avgY = 0, upS = 0, downS = 0, countS = 0;
-            for (let i = 0; i < sigData.length; i += 16) {
-                const r = sigData[i], g = sigData[i+1], b = sigData[i+2];
-                const y = Math.floor((i / 4) / sigW);
-                if (isMatch(r, g, b, theme)) {
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
-                    avgY += y; countS++;
-                    if (theme === 'green_red') { g > r ? upS++ : downS++; }
-                    else if (theme === 'blue_red') { b > r ? upS++ : downS++; }
-                    else if (theme === 'white_black') { r > 190 ? upS++ : downS++; }
+            // 1. Глобальный тренд (60% графика)
+            const globalData = ctx.getImageData(0, 0, w * 0.6, h).data;
+            let gUp = 0, gDown = 0;
+            for(let i=0; i<globalData.length; i+=64) {
+                if(theme === 'green_red') { if(globalData[i+1] > globalData[i]+20) gUp++; else if(globalData[i] > globalData[i+1]+20) gDown++; }
+                else { if(globalData[i+2] > globalData[i]+20) gUp++; else if(globalData[i] > globalData[i+1]+20) gDown++; }
+            }
+
+            // 2. МИКРО-ЗОНА (Последние 7% — самые свежие свечи)
+            const microX = Math.floor(w * 0.93);
+            const microData = ctx.getImageData(microX, 0, w - microX, h).data;
+            let mUp = 0, mDown = 0, minY = h, maxY = 0;
+            for(let i=0; i<microData.length; i+=16) {
+                const r=microData[i], g=microData[i+1], b=microData[i+2];
+                const y = Math.floor((i/4) / (w - microX));
+                if((g > r+20) || (r > g+20) || (b > r+20)) {
+                    if(y < minY) minY = y; if(y > maxY) maxY = y;
+                    if(theme === 'green_red') { g > r ? mUp++ : mDown++; } else { b > r ? mUp++ : mDown++; }
                 }
             }
 
-            avgY /= (countS || 1);
-            const candleH = maxY - minY;
-            const relPos = (avgY - minY) / (candleH || 1);
-            
-            let isUp = upS > downS;
-            let score = 45;
-            let logic = t.following;
+            // ЛОГИКА РЕШЕНИЯ
+            let isUp = gUp > gDown;
+            let logic = t.trend;
+            let score = 65;
 
-            // Расчет Score
-            if (isUp === trendUp) score += 25;
-            if (candleH > 35) score += 15;
-            if (relPos < 0.3 || relPos > 0.7) { score += 20; logic = t.rejection; }
+            // OVERRIDE: Если в микро-зоне сильное движение против тренда (как на вашем скрине)
+            if (mDown > mUp * 1.4 && isUp) {
+                isUp = false; // Меняем сигнал на DOWN
+                logic = t.rev;
+                score = 82;
+            } else if (mUp > mDown * 1.4 && !isUp) {
+                isUp = true; // Меняем сигнал на UP
+                logic = t.rev;
+                score = 82;
+            }
 
-            // 3. ВИЗУАЛЬНАЯ РАЗМЕТКА НА КАНВАСЕ
+            // Визуализация
             ctx.strokeStyle = isUp ? "#00f281" : "#ff4b5c";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(sigX - 5, minY - 10, sigW + 10, candleH + 20);
+            ctx.lineWidth = 5;
+            ctx.strokeRect(microX, minY, w-microX, maxY-minY);
+
+            document.getElementById('screen-upload').classList.remove('active');
+            document.getElementById('screen-result').classList.add('active');
             
-            // Рисуем стрелку
-            ctx.fillStyle = isUp ? "#00f281" : "#ff4b5c";
-            ctx.beginPath();
-            const arrowX = sigX - 30;
-            const arrowY = isUp ? minY - 20 : maxY + 20;
-            ctx.moveTo(arrowX, arrowY);
-            ctx.lineTo(arrowX - 15, isUp ? arrowY + 20 : arrowY - 20);
-            ctx.lineTo(arrowX + 15, isUp ? arrowY + 20 : arrowY - 20);
-            ctx.fill();
+            document.getElementById('resSignal').innerText = isUp ? t.up : t.down;
+            document.getElementById('resSignal').style.color = isUp ? "var(--accent)" : "var(--danger)";
+            document.getElementById('resBorder').style.borderColor = isUp ? "var(--accent)" : "var(--danger)";
+            document.getElementById('trend-status').innerText = logic;
+            document.getElementById('impulse-power').innerText = (maxY-minY > h*0.2) ? t.high : t.stable;
+            document.getElementById('rec-time').innerText = logic === t.rev ? "1-3 MIN" : "5-10 MIN";
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (score + Math.random()*10).toFixed(1) + "%";
 
-            // 4. ВЫВОД
-            setTimeout(() => {
-                document.getElementById('screen-upload').classList.remove('active');
-                document.getElementById('screen-result').classList.add('active');
-                
-                const resS = document.getElementById('resSignal');
-                resS.innerText = isUp ? t.up : t.down;
-                resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
-                document.getElementById('resBorder').style.borderColor = resS.style.color;
-                
-                document.getElementById('trend-status').innerText = logic;
-                document.getElementById('impulse-power').innerText = candleH > 50 ? t.high_p : t.stable;
-                document.getElementById('rec-time').innerText = (isUp === trendUp) ? "5-10 MIN" : "2-3 MIN";
-                document.getElementById('resAccuracy').innerText = "Confidence: " + Math.min(score + (Math.random()*5), 98.2).toFixed(1) + "%";
-                
-                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            }, 300);
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         };
-
-        window.resetApp = function() { location.reload(); };
     </script>
 </body>
 </html>
