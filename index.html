@@ -76,10 +76,13 @@
             position: relative;
             overflow: hidden;
             cursor: pointer;
+            transition: 0.3s;
         }
+        .upload-area:active { background: rgba(255,255,255,0.05); }
+
         #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; border: 1px solid var(--border); }
-        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; }
-        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; }
+        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; pointer-events: none; }
+        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; }
 
         .theme-selector {
             margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; color: var(--text-gray);
@@ -101,7 +104,7 @@
             width: 100%; padding: 22px; background: var(--accent); color: #000; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 20px rgba(0, 242, 129, 0.3); transition: 0.2s; margin-bottom: 20px;
         }
         .btn-main:active { transform: scale(0.98); }
-        .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
+        .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; cursor: not-allowed; }
 
         .lang-btn {
             background: #161a24; color: var(--accent); border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 10px auto 0; display: block;
@@ -121,8 +124,8 @@
         <h1 class="app-title">Kryon AI Trade Bot</h1>
         <p class="app-subtitle">Ultra Momentum Vision v4</p>
         <div class="steps-bar">
-            <span id="step-upload" class="active">Upload</span>
-            <span id="step-result">Signal</span>
+            <span id="step-upload" class="active" data-i18n="step_up">Upload</span>
+            <span id="step-result" data-i18n="step_res">Signal</span>
         </div>
     </div>
 
@@ -131,8 +134,8 @@
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <div id="placeholder">
                     <div style="font-size: 55px; margin-bottom: 20px;">🖼️</div>
-                    <div style="font-weight: 800; font-size: 18px;" id="t-upload-title">UPLOAD SCREENSHOT</div>
-                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" id="t-upload-desc">AI detects trend exhaustion and reversal</div>
+                    <div style="font-weight: 800; font-size: 18px;" data-i18n="up_t">UPLOAD SCREENSHOT</div>
+                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" data-i18n="up_d">AI detects trend exhaustion and reversal</div>
                 </div>
                 <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
@@ -140,32 +143,32 @@
             </div>
 
             <div class="theme-selector">
-                <span id="t-theme-label">Chart Colors:</span>
+                <span data-i18n="th_l">Chart Colors:</span>
                 <select id="colorTheme">
                     <option value="green_red">Green / Red</option>
                     <option value="blue_red">Blue / Red</option>
                 </select>
             </div>
 
-            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="window.handleImage(this)">
-            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="window.performUltraAnalysis()">Run Neural Scan</button>
-            <button class="lang-btn" onclick="window.toggleLang()">RU / EN</button>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImage(this)">
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="performUltraAnalysis()" data-i18n="btn_scan">Run Neural Scan</button>
+            <button class="lang-btn" onclick="toggleLang()">RU / EN</button>
         </div>
 
         <div id="screen-result" class="screen">
             <div class="result-card" id="resBorder">
-                <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px;" id="t-res-label">KRYON AI ULTRA ANALYZER</div>
+                <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px;" data-i18n="res_l">KRYON AI ULTRA ANALYZER</div>
                 <div id="resSignal" class="signal-val">---</div>
                 <div id="resAccuracy" style="font-size: 20px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
                 
                 <div class="analysis-box">
-                    <div class="analysis-item"><span id="t-an-status">Logic:</span> <b id="trend-status">---</b></div>
-                    <div class="analysis-item"><span id="t-an-impulse">Market:</span> <b id="impulse-power">---</b></div>
-                    <div class="analysis-item"><span id="t-an-time">Rec. Time:</span> <b id="rec-time">---</b></div>
+                    <div class="analysis-item"><span data-i18n="an_s">Logic:</span> <b id="trend-status">---</b></div>
+                    <div class="analysis-item"><span data-i18n="an_i">Market:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span data-i18n="an_t">Rec. Time:</span> <b id="rec-time">---</b></div>
                 </div>
             </div>
             <button class="btn-main" style="background: #232a35; color: #fff;" onclick="location.reload()">
-                <span id="t-btn-new">New Analysis</span>
+                <span data-i18n="btn_new">New Analysis</span>
             </button>
         </div>
     </div>
@@ -177,12 +180,13 @@
         if (tg.expand) tg.expand();
         tg.headerColor = "#11151e";
 
-        window.lang = 'ru';
-        let canvas = document.getElementById('main-canvas');
-        let ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let currentLang = 'ru';
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
         const trans = {
             ru: {
+                step_up: "Загрузка", step_res: "Сигнал",
                 up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ ищет истощение тренда и развороты",
                 btn_scan: "Запустить сканирование", res_l: "KRYON AI ULTRA ANALYZER",
                 an_s: "Логика:", an_i: "Рынок:", an_t: "Время:",
@@ -193,6 +197,7 @@
                 th_l: "Цвета свечей:"
             },
             en: {
+                step_up: "Upload", step_res: "Signal",
                 up_t: "UPLOAD SCREENSHOT", up_d: "AI detects trend exhaustion and reversal",
                 btn_scan: "Run Neural Scan", res_l: "KRYON AI ULTRA ANALYZER",
                 an_s: "Logic:", an_i: "Market:", an_t: "Rec. Time:",
@@ -204,13 +209,23 @@
             }
         };
 
+        function updateLocalization() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (trans[currentLang][key]) {
+                    el.innerText = trans[currentLang][key];
+                }
+            });
+        }
+
         window.toggleLang = function() {
-            window.lang = window.lang === 'en' ? 'ru' : 'en';
-            const t = trans[window.lang];
-            const ids = ['t-upload-title', 't-upload-desc', 'visionBtn', 't-res-label', 't-btn-new', 't-an-status', 't-an-impulse', 't-an-time', 't-theme-label'];
-            const keys = ['up_t', 'up_d', 'btn_scan', 'res_l', 'btn_new', 'an_s', 'an_i', 'an_t', 'th_l'];
-            ids.forEach((id, i) => { if(document.getElementById(id)) document.getElementById(id).innerText = t[keys[i]]; });
+            currentLang = currentLang === 'en' ? 'ru' : 'en';
+            updateLocalization();
         };
+
+        // Инициализация языка при старте
+        updateLocalization();
 
         window.handleImage = function(input) {
             const file = input.files[0];
@@ -219,9 +234,11 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const maxW = 1000;
-                    const scale = img.width > maxW ? maxW / img.width : 1;
-                    canvas.width = 1000; canvas.height = img.height * scale;
+                    // Сохраняем пропорции изображения
+                    const aspect = img.height / img.width;
+                    canvas.width = 1000; 
+                    canvas.height = 1000 * aspect;
+                    
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
@@ -237,11 +254,16 @@
             const line = document.getElementById('scanLine');
             const log = document.getElementById('analysisLog');
             const theme = document.getElementById('colorTheme').value;
-            const t = trans[window.lang];
+            const t = trans[currentLang];
             
-            btn.disabled = true; line.style.display = 'block'; log.style.display = 'block'; log.innerHTML = "";
+            btn.disabled = true; 
+            line.style.display = 'block'; 
+            log.style.display = 'block'; 
+            log.innerHTML = "";
+
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
+            // Симуляция прогресса
             for (let i = 1; i <= 5; i++) {
                 log.innerHTML += t['log' + i] + "<br>";
                 line.style.top = (i * 20) + "%";
@@ -249,53 +271,70 @@
                 await new Promise(r => setTimeout(r, 600));
             }
 
-            const w = canvas.width, h = canvas.height;
+            const w = canvas.width;
+            const h = canvas.height;
             
-            // 1. Глобальный тренд (60% графика)
-            const histData = ctx.getImageData(0, 0, Math.floor(w * 0.6), h).data;
+            // Анализ данных
+            const histData = ctx.getImageData(0, 0, Math.floor(w * 0.7), h).data;
             let gUp = 0, gDown = 0;
-            for(let i=0; i<histData.length; i+=64) {
+            
+            for(let i=0; i<histData.length; i+=128) { // Шаг 128 для скорости
                 const r=histData[i], g=histData[i+1], b=histData[i+2];
-                if(theme==='green_red') { if(g > r+15) gUp++; else if(r > g+15) gDown++; }
-                else { if(b > r+15) gUp++; else if(r > g+15) gDown++; }
+                if(theme==='green_red') {
+                    if(g > r+20 && g > b+20) gUp++;
+                    else if(r > g+20 && r > b+20) gDown++;
+                } else {
+                    if(b > r+20 && b > g+20) gUp++;
+                    else if(r > g+20 && r > b+20) gDown++;
+                }
             }
 
-            // 2. Микро-зона (Последние 7-8% — самые актуальные свечи)
-            const microX = Math.floor(w * 0.92);
+            const microX = Math.floor(w * 0.90);
             const microData = ctx.getImageData(microX, 0, w - microX, h).data;
             let mUp = 0, mDown = 0, minY = h, maxY = 0;
-            for (let i = 0; i < microData.length; i += 16) {
+
+            for (let i = 0; i < microData.length; i += 32) {
                 const r = microData[i], g = microData[i+1], b = microData[i+2];
-                const y = Math.floor((i / 4) / (w - microX));
-                let match = false;
-                if(theme==='green_red') { if(g > r+20) {mUp++; match=true;} else if(r > g+20) {mDown++; match=true;} }
-                else { if(b > r+20) {mUp++; match=true;} else if(r > g+20) {mDown++; match=true;} }
-                if(match) { if(y < minY) minY = y; if(y > maxY) maxY = y; }
+                const pixelIdx = i / 4;
+                const y = Math.floor(pixelIdx / (w - microX));
+                
+                let isGreen = false, isRed = false;
+                if(theme==='green_red') {
+                    if(g > r+20) isGreen = true; else if(r > g+20) isRed = true;
+                } else {
+                    if(b > r+20) isGreen = true; else if(r > g+20) isRed = true;
+                }
+
+                if(isGreen) mUp++;
+                if(isRed) mDown++;
+                if(isGreen || isRed) {
+                    if(y < minY) minY = y;
+                    if(y > maxY) maxY = y;
+                }
             }
 
             const globalTrendUp = gUp > gDown;
             let isUp = mUp > mDown;
             let logic = t.following;
-            let score = 70;
+            let score = 72;
 
-            // ГЛАВНОЕ ИСПРАВЛЕНИЕ: Если микро-импульс идет против глобального тренда
-            if (mDown > mUp * 1.5 && globalTrendUp) {
-                isUp = false; // Разворот вниз
-                logic = t.reversal;
-                score = 85;
-            } else if (mUp > mDown * 1.5 && !globalTrendUp) {
-                isUp = true; // Разворот вверх
-                logic = t.reversal;
-                score = 85;
+            // Логика разворота
+            if (mDown > mUp * 1.3 && globalTrendUp) {
+                isUp = false; logic = t.reversal; score = 84;
+            } else if (mUp > mDown * 1.3 && !globalTrendUp) {
+                isUp = true; logic = t.reversal; score = 84;
             }
 
-            // Отрисовка рамки на канвасе
+            // Визуализация рамки на канвасе
             ctx.strokeStyle = isUp ? "#00f281" : "#ff4b5c";
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 6;
             ctx.strokeRect(microX, minY, w-microX, maxY-minY);
 
+            // Переключение экранов
             document.getElementById('screen-upload').classList.remove('active');
             document.getElementById('screen-result').classList.add('active');
+            document.getElementById('step-upload').classList.remove('active');
+            document.getElementById('step-result').classList.add('active');
             
             const resS = document.getElementById('resSignal');
             resS.innerText = isUp ? t.up : t.down;
@@ -303,9 +342,9 @@
             document.getElementById('resBorder').style.borderColor = resS.style.color;
             
             document.getElementById('trend-status').innerText = logic;
-            document.getElementById('impulse-power').innerText = (maxY - minY > h * 0.15) ? t.high_p : t.stable;
+            document.getElementById('impulse-power').innerText = (maxY - minY > h * 0.2) ? t.high_p : t.stable;
             document.getElementById('rec-time').innerText = logic === t.reversal ? "1-3 MIN" : "5-10 MIN";
-            document.getElementById('resAccuracy').innerText = "Confidence: " + (score + Math.random()*12).toFixed(1) + "%";
+            document.getElementById('resAccuracy').innerText = "Confidence: " + (score + Math.random()*10).toFixed(1) + "%";
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         };
