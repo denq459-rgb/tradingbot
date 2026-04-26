@@ -3,301 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trade Algo Bot</title>
+    <title>Trade Algo Bot PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg-color: #0b0e14;
             --card-bg: #1a1e26;
-            --accent: #00f281; /* Неоновый зеленый */
+            --accent: #00f281;
             --text-main: #ffffff;
             --text-gray: #8e949a;
             --border: #2c313a;
+            --danger: #ff4b5c;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0; padding: 0;
             overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            display: flex; flex-direction: column; min-height: 100vh;
         }
 
-        /* --- ХЕДЕР --- */
-        .app-header {
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(to bottom, #161a23, var(--bg-color));
-        }
-        .app-logo {
-            width: 40px; height: 40px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center; justify-content: center;
-            border: 1px solid var(--accent);
-            margin-bottom: 10px;
-            box-shadow: 0 0 15px rgba(0, 242, 129, 0.2);
-        }
+        /* ХЕДЕР */
+        .app-header { padding: 20px; text-align: center; background: linear-gradient(to bottom, #161a23, var(--bg-color)); }
         .app-title { font-size: 22px; font-weight: 800; margin: 0; }
         .app-subtitle { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* --- КОНТЕНТ --- */
+        /* КОНТЕНТ */
         .content { flex: 1; padding: 15px; padding-bottom: 90px; }
-
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* КАРТОЧКИ МЕТОДОВ */
+        /* КАРТОЧКИ */
         .method-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border);
-            display: flex; align-items: center; gap: 15px;
-            cursor: pointer;
+            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            margin-bottom: 15px; border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 15px; cursor: pointer;
         }
         .method-icon { width: 40px; height: 40px; background: #232933; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 20px; }
         .method-info { flex: 1; }
         .method-name { font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
-        .method-desc { font-size: 11px; color: var(--text-gray); margin-top: 4px; line-height: 1.4; }
+        .method-desc { font-size: 11px; color: var(--text-gray); margin-top: 4px; }
         .badge-ai { background: rgba(0, 242, 129, 0.1); color: var(--accent); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; }
 
-        /* СПИСОК ПАР */
-        .pair-row {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 12px;
-            cursor: pointer;
+        /* СКРИНШОТ СКРИН */
+        .upload-area {
+            border: 2px dashed var(--border); border-radius: 20px;
+            padding: 40px 20px; text-align: center; cursor: pointer;
+            background: rgba(255,255,255,0.02); margin-top: 20px;
         }
-        .pair-row:active { background: rgba(255,255,255,0.03); }
-        .pair-names { flex: 1; font-weight: 600; font-size: 15px; }
-        .pair-status { display: flex; gap: 5px; }
-        .status-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; text-transform: uppercase; }
-        .hot { background: #00f281; color: #000; }
-        .otc { background: #ff9d00; color: #000; }
+        #preview-img { width: 100%; border-radius: 12px; margin-top: 15px; display: none; border: 1px solid var(--accent); }
 
-        /* СЕТКА ТАЙМЕРОВ */
-        .timer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .timer-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px 5px;
-            text-align: center;
-            cursor: pointer;
+        /* АНИМАЦИЯ СКАНИРОВАНИЯ */
+        .scanner-container { position: relative; width: 100%; overflow: hidden; display: none; margin-top: 15px; }
+        .scanner-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--accent); box-shadow: 0 0 15px var(--accent);
+            animation: scanMove 2s linear infinite;
         }
-        .timer-item.selected { border-color: var(--accent); background: rgba(0, 242, 129, 0.05); }
-        .timer-val { font-size: 16px; font-weight: 800; display: block; }
-        .timer-icon { font-size: 18px; margin-bottom: 5px; display: block; }
+        @keyframes scanMove { 0% { top: 0%; } 100% { top: 100%; } }
 
-        /* ЛИДЕРБОРД */
-        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin: 30px 0; }
-        .podium-item { background: var(--card-bg); border-radius: 12px; padding: 15px; text-align: center; width: 80px; position: relative; }
-        .p-1 { height: 120px; border: 1px solid #ffd700; }
-        .p-2 { height: 100px; border: 1px solid #c0c0c0; }
-        .p-3 { height: 90px; border: 1px solid #cd7f32; }
+        /* РЕЗУЛЬТАТ */
+        .result-box {
+            background: var(--card-bg); border-radius: 20px; padding: 30px;
+            text-align: center; border: 2px solid var(--accent); display: none; margin-top: 20px;
+        }
+        .result-val { font-size: 40px; font-weight: 900; margin: 10px 0; }
 
         /* КНОПКИ */
         .main-btn {
-            width: 100%; padding: 18px;
-            background: var(--accent); color: #000;
-            border: none; border-radius: 14px;
-            font-weight: 900; font-size: 16px;
+            width: 100%; padding: 18px; background: var(--accent); color: #000;
+            border: none; border-radius: 14px; font-weight: 900; font-size: 16px;
             margin-top: 20px; cursor: pointer;
         }
         .back-link { text-align: center; color: var(--text-gray); font-size: 13px; margin-top: 15px; cursor: pointer; }
 
-        /* НИЖНЯЯ ПАНЕЛЬ */
+        /* НАВИГАЦИЯ */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%;
-            background: #11141b;
-            display: flex; justify-content: space-around;
-            padding: 12px 0 25px 0;
-            border-top: 1px solid var(--border);
+            position: fixed; bottom: 0; width: 100%; background: #11141b;
+            display: flex; justify-content: space-around; padding: 12px 0 25px 0; border-top: 1px solid var(--border);
         }
         .nav-item { color: var(--text-gray); display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 10px; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
-        .nav-icon { font-size: 22px; }
-
-        /* ИНДИКАТОР ВНИЗУ */
-        .bottom-line { position: fixed; bottom: 0; width: 100%; height: 4px; background: #1a1e26; }
-        .progress-line { width: 40%; height: 100%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
     </style>
 </head>
 <body>
 
     <div class="app-header">
-        <div class="app-logo">📈</div>
-        <h1 class="app-title">Trade Algo Bot</h1>
+        <div class="app-title">Trade Algo Bot</div>
         <p class="app-subtitle">Advanced Trading Signals</p>
     </div>
 
     <div class="content">
-        <!-- ЭКРАН 1: ГЛАВНАЯ -->
+        <!-- ГЛАВНАЯ -->
         <div id="screen-home" class="screen active">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <span style="font-size: 30px;">⚡</span>
-                <h2 style="margin: 10px 0;">Get Signal</h2>
-                <p style="color: var(--text-gray); font-size: 13px;">Choose your analysis method</p>
-            </div>
+            <h2 style="text-align:center;">Get Signal</h2>
             
             <div class="method-card" onclick="showScreen('screen-assets')">
                 <div class="method-icon">⚡</div>
                 <div class="method-info">
                     <div class="method-name">Signal by Instrument <span class="badge-ai" style="background:#232933; color:var(--text-gray)">Fast</span></div>
-                    <div class="method-desc">Choose an asset type and instrument — instant signal without uploading</div>
+                    <div class="method-desc">Choose an asset type and instrument — instant signal</div>
                 </div>
-                <div style="color: var(--border)">❯</div>
+                <div>❯</div>
             </div>
 
-            <div class="method-card">
+            <!-- ИСПРАВЛЕННАЯ КАРТОЧКА СКРИНШОТА -->
+            <div class="method-card" onclick="showScreen('screen-screenshot')">
                 <div class="method-icon">📸</div>
                 <div class="method-info">
                     <div class="method-name">Signal from Screenshot <span class="badge-ai">AI</span></div>
-                    <div class="method-desc">Upload a chart screenshot — AI will analyze and give you a signal</div>
+                    <div class="method-desc">Upload a chart screenshot — AI will analyze it</div>
                 </div>
-                <div style="color: var(--border)">❯</div>
+                <div>❯</div>
             </div>
         </div>
 
-        <!-- ЭКРАН 2: ТИП АКТИВА -->
+        <!-- ЭКРАН ЗАГРУЗКИ СКРИНШОТА -->
+        <div id="screen-screenshot" class="screen">
+            <h3 style="text-align:center;">AI Analysis</h3>
+            <p style="color:var(--text-gray); font-size:12px; text-align:center;">Upload a screenshot of your trading terminal</p>
+            
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div id="upload-placeholder">
+                    <span style="font-size:40px;">📁</span>
+                    <p>Click to upload image</p>
+                </div>
+                <div class="scanner-container" id="scanner-box">
+                    <div class="scanner-line"></div>
+                    <img id="preview-img" src="#">
+                </div>
+            </div>
+
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
+
+            <div id="result-area" class="result-box">
+                <div id="res-type" style="font-size:12px; text-transform:uppercase; letter-spacing:2px;">Signal</div>
+                <div id="res-val" class="result-val">---</div>
+                <div id="res-acc" style="color:var(--accent);">Accuracy: 96%</div>
+            </div>
+
+            <button id="analyze-btn" class="main-btn" style="display:none" onclick="startAIAnalysis()">🧠 Start AI Analysis</button>
+            <div class="back-link" onclick="resetScreenshot()">← Back</div>
+        </div>
+
+        <!-- Остальные экраны (заглушки) -->
         <div id="screen-assets" class="screen">
-            <div style="text-align:center; margin-bottom:20px;"><span style="font-size:30px;">📊</span><h3>Asset Type</h3></div>
-            <div class="method-card" onclick="showScreen('screen-pairs')">
-                <div class="method-icon">⚖️</div>
-                <div class="method-info"><b>Currency Pairs</b><div class="method-desc">Forex majors, minors and exotics</div></div>
-                <div>❯</div>
-            </div>
-            <div class="method-card">
-                <div class="method-icon">₿</div>
-                <div class="method-info"><b>Cryptocurrency</b><div class="method-desc">BTC, ETH and other digital assets</div></div>
-                <div>❯</div>
-            </div>
-            <div class="back-link" onclick="showScreen('screen-home')">← Back to Menu</div>
-        </div>
-
-        <!-- ЭКРАН 3: СПИСОК ПАР -->
-        <div id="screen-pairs" class="screen">
-            <div style="background: var(--card-bg); border-radius:12px; padding:10px; margin-bottom:15px; border:1px solid var(--border);">
-                <input type="text" placeholder="Search pairs..." style="background:none; border:none; color:#fff; width:100%; outline:none;">
-            </div>
-            <div style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
-                <div class="pair-row" onclick="toTimer('EUR / USD 🇪🇺')">
-                    <span class="flag-icon">🇪🇺</span><div class="pair-names">EUR ➔ USD</div>
-                    <div class="pair-status"><span class="status-tag hot">Hot</span><span class="status-tag otc">OTC</span></div>
-                </div>
-                <div class="pair-row" onclick="toTimer('GBP / USD 🇬🇧')">
-                    <span class="flag-icon">🇬🇧</span><div class="pair-names">GBP ➔ USD</div>
-                    <div class="pair-status"><span class="status-tag hot">Hot</span><span class="status-tag otc">OTC</span></div>
-                </div>
-                <div class="pair-row" onclick="toTimer('USD / JPY 🇯🇵')">
-                    <span class="flag-icon">🇺🇸</span><div class="pair-names">USD ➔ JPY</div>
-                    <div class="pair-status"><span class="status-tag hot">Hot</span><span class="status-tag otc">OTC</span></div>
-                </div>
-            </div>
-            <div class="back-link" onclick="showScreen('screen-assets')">← Back to Assets</div>
-        </div>
-
-        <!-- ЭКРАН 4: ТАЙМЕР -->
-        <div id="screen-timer" class="screen">
-            <div style="text-align:center;">
-                <span style="font-size:30px;">⏱️</span>
-                <h3 id="selected-pair-title">EUR / USD</h3>
-                <p style="color:var(--text-gray); font-size:12px;">Choose forecast duration</p>
-            </div>
-            <div class="timer-grid">
-                <div class="timer-item" onclick="selectTimer(this)"><span class="timer-icon">🌀</span><span class="timer-val">3s</span></div>
-                <div class="timer-item selected" onclick="selectTimer(this)"><span class="timer-icon">⚡</span><span class="timer-val">5s</span></div>
-                <div class="timer-item" onclick="selectTimer(this)"><span class="timer-icon">🔥</span><span class="timer-val">10s</span></div>
-                <div class="timer-item" onclick="selectTimer(this)"><span class="timer-icon">⭐</span><span class="timer-val">15s</span></div>
-                <div class="timer-item" onclick="selectTimer(this)"><span class="timer-icon">🎯</span><span class="timer-val">30s</span></div>
-                <div class="timer-item" onclick="selectTimer(this)"><span class="timer-icon">📊</span><span class="timer-val">1m</span></div>
-            </div>
-            <button class="main-btn" onclick="getSignal()">🚀 Get Signal</button>
-            <div class="back-link" onclick="showScreen('screen-pairs')">← Back to Pairs</div>
-        </div>
-
-        <!-- ЭКРАН 5: ЛИДЕРБОРД -->
-        <div id="screen-leaderboard" class="screen">
-            <h3 style="text-align:center;">Leaderboard</h3>
-            <div class="podium">
-                <div class="podium-item p-2">🥈<br><small>...2798</small><br><b>$1.40k</b></div>
-                <div class="podium-item p-1">🥇<br><small>...7877</small><br><b>$1.50k</b></div>
-                <div class="podium-item p-3">🥉<br><small>...9017</small><br><b>$1.20k</b></div>
-            </div>
-            <div style="background:var(--card-bg); border-radius:12px; padding:10px;">
-                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--border); font-size:13px; color:var(--text-gray);">
-                    <span># Trader</span><span>Profit</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid var(--border);">
-                    <span>4. 🇩🇪 ...5048</span><span style="color:var(--accent)">$1.04k</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:15px;">
-                    <span>5. 🇮🇳 ...6050</span><span style="color:var(--accent)">$997</span>
-                </div>
-            </div>
+            <h3 style="text-align:center;">Assets</h3>
+            <div class="method-card"> Forex... </div>
+            <div class="back-link" onclick="showScreen('screen-home')">← Back</div>
         </div>
     </div>
 
     <!-- НАВИГАЦИЯ -->
     <div class="nav-bar">
-        <div class="nav-item active" onclick="switchTab('home', this)">
-            <span class="nav-icon">⚡</span><span>Signals</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('edu', this)">
-            <span class="nav-icon">🎓</span><span>Education</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('leaderboard', this)">
-            <span class="nav-icon">🏆</span><span>Top</span>
-        </div>
-        <div class="nav-item">
-            <span class="nav-icon">⚙️</span><span>Settings</span>
-        </div>
+        <div class="nav-item active" onclick="showScreen('screen-home')"><span>⚡</span><br>Signals</div>
+        <div class="nav-item"><span>🎓</span><br>Education</div>
+        <div class="nav-item"><span>🏆</span><br>Top</div>
+        <div class="nav-item"><span>⚙️</span><br>Settings</div>
     </div>
-
-    <div class="bottom-line"><div class="progress-line"></div></div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#161a23";
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0);
         }
 
-        function switchTab(tab, el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            if(tab === 'home') showScreen('screen-home');
-            if(tab === 'leaderboard') showScreen('screen-leaderboard');
-            if(tab === 'edu') alert('Education content coming soon!');
+        // ОБРАБОТКА ФАЙЛА
+        function handleFile(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('preview-img').style.display = 'block';
+                    document.getElementById('scanner-box').style.display = 'block';
+                    document.getElementById('upload-placeholder').style.display = 'none';
+                    document.getElementById('analyze-btn').style.display = 'block';
+                    document.getElementById('result-area').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+                tg.HapticFeedback.impactOccurred('medium');
+            }
         }
 
-        function toTimer(pair) {
-            document.getElementById('selected-pair-title').innerText = pair;
-            showScreen('screen-timer');
-            tg.HapticFeedback.impactOccurred('medium');
+        // ИМИТАЦИЯ ИИ АНАЛИЗА
+        function startAIAnalysis() {
+            const btn = document.getElementById('analyze-btn');
+            const scannerLine = document.querySelector('.scanner-line');
+            const resultBox = document.getElementById('result-area');
+            const resVal = document.getElementById('res-val');
+            
+            btn.disabled = true;
+            btn.innerText = "Analyzing Market Data...";
+            scannerLine.style.display = 'block';
+            
+            tg.HapticFeedback.impactOccurred('heavy');
+
+            setTimeout(() => {
+                scannerLine.style.display = 'none';
+                btn.style.display = 'none';
+                resultBox.style.display = 'block';
+                
+                // Логика результата
+                const isUp = Math.random() > 0.5;
+                if(isUp) {
+                    resVal.innerText = "CALL 🟢";
+                    resVal.style.color = "var(--accent)";
+                    resultBox.style.borderColor = "var(--accent)";
+                } else {
+                    resVal.innerText = "PUT 🔴";
+                    resVal.style.color = "var(--danger)";
+                    resultBox.style.borderColor = "var(--danger)";
+                }
+                
+                tg.HapticFeedback.notificationOccurred('success');
+            }, 3000); // 3 секунды "анализа"
         }
 
-        function selectTimer(el) {
-            document.querySelectorAll('.timer-item').forEach(t => t.classList.remove('selected'));
-            el.classList.add('selected');
-            tg.HapticFeedback.selectionChanged();
-        }
-
-        function getSignal() {
-            tg.HapticFeedback.notificationOccurred('success');
-            alert('AI Analyzing the market... (Signal logic goes here)');
+        function resetScreenshot() {
+            document.getElementById('fileInput').value = "";
+            document.getElementById('preview-img').style.display = 'none';
+            document.getElementById('scanner-box').style.display = 'none';
+            document.getElementById('upload-placeholder').style.display = 'block';
+            document.getElementById('analyze-btn').style.display = 'none';
+            document.getElementById('analyze-btn').disabled = false;
+            document.getElementById('analyze-btn').innerText = "🧠 Start AI Analysis";
+            document.getElementById('result-area').style.display = 'none';
+            showScreen('screen-home');
         }
     </script>
 </body>
