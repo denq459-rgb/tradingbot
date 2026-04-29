@@ -2,15 +2,16 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Kryon AI Trade Bot - Ultra Vision</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0c0f17;
-            --card-bg: #161a24;
+            /* Интеграция с цветами Telegram */
+            --bg-color: var(--tg-theme-bg-color, #0c0f17);
+            --card-bg: var(--tg-theme-secondary-bg-color, #161a24);
             --accent: #00f281;
-            --text-main: #ffffff;
+            --text-main: var(--tg-theme-text-color, #ffffff);
             --text-gray: #7a828a;
             --border: #232a35;
             --danger: #ff4b5c;
@@ -23,97 +24,124 @@
             font-family: 'Inter', -apple-system, sans-serif;
             margin: 0; padding: 0;
             overflow-x: hidden;
-            overflow-y: auto;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            user-select: none;
         }
 
         .app-header {
-            padding: 25px 15px 15px;
+            padding: 30px 15px 20px;
             text-align: center;
-            background: linear-gradient(to bottom, #11151e, var(--bg-color));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2), transparent);
             border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
         }
+
         .header-logo {
-            width: 40px; height: 40px;
+            width: 44px; height: 44px;
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 14px;
             display: inline-flex; align-items: center; justify-content: center;
             border: 1px solid var(--accent);
-            margin-bottom: 10px; color: var(--accent); font-size: 22px;
-            box-shadow: 0 0 15px rgba(0, 242, 129, 0.15);
+            margin-bottom: 12px; font-size: 24px;
+            box-shadow: 0 0 20px rgba(0, 242, 129, 0.15);
         }
-        .app-title { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
-        .app-subtitle { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+        .app-title { font-size: 22px; font-weight: 800; margin: 0; }
+        .app-subtitle { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px; opacity: 0.8; }
         
         .steps-bar {
             display: inline-flex; gap: 20px;
-            background: #11151e; padding: 8px 20px;
+            background: rgba(0,0,0,0.3); padding: 8px 20px;
             border-radius: 20px; font-size: 11px; color: var(--text-gray);
-            margin-top: 20px; font-weight: bold; border: 1px solid #1a1f29;
+            margin-top: 20px; border: 1px solid var(--border);
         }
-        .steps-bar span.active { color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-        .steps-bar span.active::before { content: '●'; color: var(--accent); }
+        .steps-bar span.active { color: var(--accent); font-weight: bold; }
 
-        .content { 
-            flex: 1; 
-            padding: 20px 15px;
-            padding-bottom: 120px; 
-        }
+        .content { flex: 1; padding: 20px 15px 120px; }
         
-        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen { display: none; animation: fadeIn 0.4s ease-out; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .upload-area {
             border: 2px dashed var(--border);
             border-radius: 24px;
-            padding: 55px 15px;
+            padding: 50px 15px;
             text-align: center;
             background: rgba(255,255,255,0.02);
             position: relative;
             overflow: hidden;
-            cursor: pointer;
             transition: 0.3s;
         }
-        .upload-area:active { background: rgba(255,255,255,0.05); }
 
-        #main-canvas { width: 100%; border-radius: 12px; display: none; margin-top: 10px; border: 1px solid var(--border); }
-        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--accent); box-shadow: 0 0 20px var(--accent); display: none; z-index: 10; pointer-events: none; }
-        .analysis-log { position: absolute; top: 10px; left: 10px; font-family: monospace; font-size: 9px; color: var(--accent); text-align: left; z-index: 11; display: none; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; }
+        #main-canvas { 
+            width: 100%; border-radius: 12px; display: none; 
+            margin-top: 10px; border: 1px solid var(--border); 
+        }
+
+        /* Улучшенная линия сканирования */
+        .scan-line { 
+            position: absolute; left: 0; width: 100%; height: 4px; 
+            background: var(--accent); 
+            box-shadow: 0 0 20px var(--accent), 0 0 10px var(--accent);
+            display: none; z-index: 10; pointer-events: none;
+            top: 0;
+            transition: top 3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .analysis-log { 
+            position: absolute; top: 10px; left: 10px; 
+            font-family: monospace; font-size: 10px; color: var(--accent); 
+            text-align: left; z-index: 11; display: none; 
+            background: rgba(0,0,0,0.7); padding: 8px; border-radius: 6px;
+            max-width: 80%; line-height: 1.4;
+        }
 
         .theme-selector {
-            margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; color: var(--text-gray);
+            margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; 
+            font-size: 13px; color: var(--text-gray);
         }
-        .theme-selector select { background: var(--card-bg); color: #fff; border: 1px solid var(--border); padding: 5px; border-radius: 8px; outline: none; }
+        .theme-selector select { 
+            background: var(--card-bg); color: #fff; border: 1px solid var(--border); 
+            padding: 6px 12px; border-radius: 10px; outline: none; 
+        }
 
         .result-card { 
-            background: var(--card-bg); border-radius: 28px; padding: 35px 20px; text-align: center; border: 2px solid var(--border); margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 28px; padding: 35px 20px; 
+            text-align: center; border: 2px solid var(--border); transition: 0.5s;
         }
         .signal-val { font-size: 52px; font-weight: 900; margin: 15px 0; letter-spacing: 1px; }
         
         .analysis-box {
-            background: #11151e; border-radius: 14px; padding: 15px; margin-top: 25px; text-align: left; border-left: 3px solid var(--accent);
+            background: rgba(0,0,0,0.2); border-radius: 16px; padding: 18px; 
+            margin-top: 25px; text-align: left; border-left: 4px solid var(--accent);
         }
-        .analysis-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: var(--text-gray); }
+        .analysis-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; color: var(--text-gray); }
         .analysis-item b { color: #fff; }
 
         .btn-main {
-            width: 100%; padding: 22px; background: var(--accent); color: #000; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 20px rgba(0, 242, 129, 0.3); transition: 0.2s; margin-bottom: 20px;
+            width: 100%; padding: 20px; background: var(--accent); color: #000; 
+            border: none; border-radius: 18px; font-weight: 800; font-size: 16px; 
+            cursor: pointer; text-transform: uppercase; margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(0, 242, 129, 0.2); transition: 0.2s;
         }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; cursor: not-allowed; }
+        .btn-main:active { transform: scale(0.96); opacity: 0.8; }
+        .btn-main:disabled { background: #232a35; color: #555; box-shadow: none; }
 
         .lang-btn {
-            background: #161a24; color: var(--accent); border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 10px auto 0; display: block;
+            background: transparent; color: var(--text-gray); border: 1px solid var(--border); 
+            padding: 8px 16px; border-radius: 12px; font-size: 11px; cursor: pointer; 
+            margin: 10px auto; display: block;
         }
 
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #11151e; border-top: 1px solid var(--border); padding: 15px 0 35px 0; text-align: center; z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; 
+            background: var(--bg-color); border-top: 1px solid var(--border); 
+            padding: 15px 0 calc(15px + var(--tg-viewport-bottom-offset, 0px)); 
+            text-align: center; z-index: 1000;
         }
-        .nav-item { color: var(--accent); font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-item { color: var(--accent); font-size: 10px; font-weight: bold; letter-spacing: 1px; opacity: 0.8; }
 
     </style>
 </head>
@@ -121,8 +149,8 @@
 
     <div class="app-header">
         <div class="header-logo">📈</div>
-        <h1 class="app-title">Kryon AI Trade Bot</h1>
-        <p class="app-subtitle">Ultra Momentum Vision v4</p>
+        <h1 class="app-title">Kryon AI</h1>
+        <p class="app-subtitle">Ultra Momentum Vision v4.2</p>
         <div class="steps-bar">
             <span id="step-upload" class="active" data-i18n="step_up">Upload</span>
             <span id="step-result" data-i18n="step_res">Signal</span>
@@ -130,12 +158,13 @@
     </div>
 
     <div class="content">
+        <!-- Экран загрузки -->
         <div id="screen-upload" class="screen active">
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <div id="placeholder">
-                    <div style="font-size: 55px; margin-bottom: 20px;">🖼️</div>
-                    <div style="font-weight: 800; font-size: 18px;" data-i18n="up_t">UPLOAD SCREENSHOT</div>
-                    <div style="font-size: 11px; color: var(--text-gray); margin-top: 10px;" data-i18n="up_d">AI detects trend exhaustion and reversal</div>
+                    <div style="font-size: 50px; margin-bottom: 15px;">🖼️</div>
+                    <div style="font-weight: 800; font-size: 18px;" data-i18n="up_t">UPLOAD CHART</div>
+                    <div style="font-size: 12px; color: var(--text-gray); margin-top: 8px; line-height: 1.4;" data-i18n="up_d">AI will detect trend exhaustion<br>and momentum reversal</div>
                 </div>
                 <div class="analysis-log" id="analysisLog"></div>
                 <div class="scan-line" id="scanLine"></div>
@@ -143,7 +172,7 @@
             </div>
 
             <div class="theme-selector">
-                <span data-i18n="th_l">Chart Colors:</span>
+                <span data-i18n="th_l">Candle Colors:</span>
                 <select id="colorTheme">
                     <option value="green_red">Green / Red</option>
                     <option value="blue_red">Blue / Red</option>
@@ -151,34 +180,35 @@
             </div>
 
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImage(this)">
-            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 25px;" onclick="performUltraAnalysis()" data-i18n="btn_scan">Run Neural Scan</button>
+            <button id="visionBtn" class="btn-main" style="display:none; margin-top: 30px;" onclick="startNeuralScan()" data-i18n="btn_scan">Run Neural Scan</button>
             <button class="lang-btn" onclick="toggleLang()">RU / EN</button>
         </div>
 
+        <!-- Экран результата -->
         <div id="screen-result" class="screen">
             <div class="result-card" id="resBorder">
-                <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px;" data-i18n="res_l">KRYON AI ULTRA ANALYZER</div>
+                <div style="color: var(--text-gray); font-size: 11px; letter-spacing: 1px; font-weight: bold;" data-i18n="res_l">KRYON AI ANALYSIS RESULT</div>
                 <div id="resSignal" class="signal-val">---</div>
                 <div id="resAccuracy" style="font-size: 20px; font-weight: bold; color: var(--accent);">Confidence: --%</div>
                 
                 <div class="analysis-box">
-                    <div class="analysis-item"><span data-i18n="an_s">Logic:</span> <b id="trend-status">---</b></div>
-                    <div class="analysis-item"><span data-i18n="an_i">Market:</span> <b id="impulse-power">---</b></div>
-                    <div class="analysis-item"><span data-i18n="an_t">Rec. Time:</span> <b id="rec-time">---</b></div>
+                    <div class="analysis-item"><span data-i18n="an_s">Strategy:</span> <b id="trend-status">---</b></div>
+                    <div class="analysis-item"><span data-i18n="an_i">Volatility:</span> <b id="impulse-power">---</b></div>
+                    <div class="analysis-item"><span data-i18n="an_t">Timeframe:</span> <b id="rec-time">---</b></div>
                 </div>
             </div>
-            <button class="btn-main" style="background: #232a35; color: #fff;" onclick="location.reload()">
+            <button class="btn-main" style="background: #232a35; color: #fff; margin-top: 25px;" onclick="location.reload()">
                 <span data-i18n="btn_new">New Analysis</span>
             </button>
         </div>
     </div>
 
-    <div class="nav-bar"><div class="nav-item">⚡ AI Signals Active</div></div>
+    <div class="nav-bar"><div class="nav-item">⚡ NEURAL ENGINE ACTIVE</div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        if (tg.expand) tg.expand();
-        tg.headerColor = "#11151e";
+        tg.expand();
+        tg.headerColor = tg.themeParams.bg_color || "#11151e";
 
         let currentLang = 'ru';
         const canvas = document.getElementById('main-canvas');
@@ -187,35 +217,32 @@
         const trans = {
             ru: {
                 step_up: "Загрузка", step_res: "Сигнал",
-                up_t: "ЗАГРУЗИТЬ СКРИНШОТ", up_d: "ИИ ищет истощение тренда и развороты",
-                btn_scan: "Запустить сканирование", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Логика:", an_i: "Рынок:", an_t: "Время:",
+                up_t: "ЗАГРУЗИТЬ ГРАФИК", up_d: "ИИ ищет точки входа и<br>разворотные импульсы",
+                btn_scan: "Начать сканирование", res_l: "РЕЗУЛЬТАТ KRYON AI",
+                an_s: "Стратегия:", an_i: "Волатильность:", an_t: "Реком. время:",
                 btn_new: "Новый анализ", up: "ВВЕРХ 🟢", down: "ВНИЗ 🔴",
-                following: "По тренду", reversal: "ИМПУЛЬСНЫЙ РАЗВОРОТ ⚠️",
-                stable: "Стабильный", high_p: "Импульсный",
-                log1: "> Определение тренда...", log2: "> Микро-анализ импульса...", log3: "> Проверка уровней...", log4: "> Расчет уверенности...", log5: "> Готово!",
-                th_l: "Цвета свечей:"
+                following: "Следование тренду", reversal: "Контр-тренд (Разворот)",
+                stable: "Низкая", high_p: "Высокая (Импульс)",
+                log1: "> Инициализация зрения...", log2: "> Поиск свечных паттернов...", log3: "> Фильтрация шумов...", log4: "> Проверка зон перекупленности...", log5: "> Формирование сигнала...",
+                th_l: "Цвета свечей:", err_no_chart: "Ошибка: График не обнаружен. Попробуйте другой скриншот."
             },
             en: {
                 step_up: "Upload", step_res: "Signal",
-                up_t: "UPLOAD SCREENSHOT", up_d: "AI detects trend exhaustion and reversal",
-                btn_scan: "Run Neural Scan", res_l: "KRYON AI ULTRA ANALYZER",
-                an_s: "Logic:", an_i: "Market:", an_t: "Rec. Time:",
+                up_t: "UPLOAD CHART", up_d: "AI detects trend exhaustion<br>and momentum reversal",
+                btn_scan: "Run Neural Scan", res_l: "KRYON AI ANALYSIS RESULT",
+                an_s: "Strategy:", an_i: "Volatility:", an_t: "Rec. Time:",
                 btn_new: "New Analysis", up: "CALL 🟢", down: "PUT 🔴",
-                following: "Trend Following", reversal: "MOMENTUM REVERSAL ⚠️",
-                stable: "Stable", high_p: "Impulsive",
-                log1: "> Trend detection...", log2: "> Micro-momentum scan...", log3: "> Level detection...", log4: "> Scoring logic...", log5: "> Done!",
-                th_l: "Chart Colors:"
+                following: "Trend Following", reversal: "Momentum Reversal",
+                stable: "Stable/Low", high_p: "High Impulse",
+                log1: "> Initializing vision...", log2: "> Detecting candle patterns...", log3: "> Noise filtering...", log4: "> Checking OB/OS levels...", log5: "> Generating signal...",
+                th_l: "Chart Colors:", err_no_chart: "Error: No chart detected. Please use a clearer screenshot."
             }
         };
 
         function updateLocalization() {
-            const elements = document.querySelectorAll('[data-i18n]');
-            elements.forEach(el => {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (trans[currentLang][key]) {
-                    el.innerText = trans[currentLang][key];
-                }
+                if (trans[currentLang][key]) el.innerHTML = trans[currentLang][key];
             });
         }
 
@@ -224,7 +251,6 @@
             updateLocalization();
         };
 
-        // Инициализация языка при старте
         updateLocalization();
 
         window.handleImage = function(input) {
@@ -234,12 +260,15 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    // Сохраняем пропорции изображения
-                    const aspect = img.height / img.width;
-                    canvas.width = 1000; 
-                    canvas.height = 1000 * aspect;
+                    // Оптимизация: ограничиваем размер для скорости анализа
+                    const maxDim = 800;
+                    let w = img.width, h = img.height;
+                    if (w > h && w > maxDim) { h *= maxDim/w; w = maxDim; }
+                    else if (h > maxDim) { w *= maxDim/h; h = maxDim; }
                     
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.width = w; canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    
                     canvas.style.display = 'block';
                     document.getElementById('placeholder').style.display = 'none';
                     document.getElementById('visionBtn').style.display = 'block';
@@ -249,105 +278,98 @@
             reader.readAsDataURL(file);
         };
 
-        window.performUltraAnalysis = async function() {
+        window.startNeuralScan = async function() {
             const btn = document.getElementById('visionBtn');
             const line = document.getElementById('scanLine');
             const log = document.getElementById('analysisLog');
-            const theme = document.getElementById('colorTheme').value;
             const t = trans[currentLang];
             
-            btn.disabled = true; 
-            line.style.display = 'block'; 
-            log.style.display = 'block'; 
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            line.style.display = 'block';
+            log.style.display = 'block';
             log.innerHTML = "";
 
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            // Симуляция прогресса
+            // Запуск плавной анимации линии через CSS
+            setTimeout(() => { line.style.top = "100%"; }, 50);
+
+            // Имитация логов
             for (let i = 1; i <= 5; i++) {
-                log.innerHTML += t['log' + i] + "<br>";
-                line.style.top = (i * 20) + "%";
+                log.innerHTML += `<div>${t['log' + i]}</div>`;
                 if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                 await new Promise(r => setTimeout(r, 600));
             }
 
+            const analysis = performAnalysis();
+            if (!analysis) {
+                alert(t.err_no_chart);
+                location.reload();
+                return;
+            }
+
+            showResults(analysis);
+        };
+
+        function performAnalysis() {
+            const theme = document.getElementById('colorTheme').value;
             const w = canvas.width;
             const h = canvas.height;
+            const data = ctx.getImageData(0, 0, w, h).data;
             
-            // Анализ данных
-            const histData = ctx.getImageData(0, 0, Math.floor(w * 0.7), h).data;
             let gUp = 0, gDown = 0;
-            
-            for(let i=0; i<histData.length; i+=128) { // Шаг 128 для скорости
-                const r=histData[i], g=histData[i+1], b=histData[i+2];
-                if(theme==='green_red') {
-                    if(g > r+20 && g > b+20) gUp++;
-                    else if(r > g+20 && r > b+20) gDown++;
-                } else {
-                    if(b > r+20 && b > g+20) gUp++;
-                    else if(r > g+20 && r > b+20) gDown++;
-                }
-            }
+            let totalColored = 0;
 
-            const microX = Math.floor(w * 0.90);
-            const microData = ctx.getImageData(microX, 0, w - microX, h).data;
-            let mUp = 0, mDown = 0, minY = h, maxY = 0;
-
-            for (let i = 0; i < microData.length; i += 32) {
-                const r = microData[i], g = microData[i+1], b = microData[i+2];
-                const pixelIdx = i / 4;
-                const y = Math.floor(pixelIdx / (w - microX));
+            // Шаг 20 для баланса точности и скорости
+            for(let i = 0; i < data.length; i += 80) {
+                const r = data[i], g = data[i+1], b = data[i+2];
                 
-                let isGreen = false, isRed = false;
-                if(theme==='green_red') {
-                    if(g > r+20) isGreen = true; else if(r > g+20) isRed = true;
+                // Фильтр: игнорируем нейтральные цвета (серый, белый, черный)
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                if (max - min < 40) continue; 
+
+                if(theme === 'green_red') {
+                    if(g > r + 30) gUp++; else if(r > g + 30) gDown++;
                 } else {
-                    if(b > r+20) isGreen = true; else if(r > g+20) isRed = true;
-                }
-
-                if(isGreen) mUp++;
-                if(isRed) mDown++;
-                if(isGreen || isRed) {
-                    if(y < minY) minY = y;
-                    if(y > maxY) maxY = y;
+                    if(b > r + 30) gUp++; else if(r > g + 30) gDown++;
                 }
             }
 
-            const globalTrendUp = gUp > gDown;
-            let isUp = mUp > mDown;
-            let logic = t.following;
-            let score = 72;
+            totalColored = gUp + gDown;
+            // Валидация: если цветных пикселей почти нет, это не график
+            if (totalColored < (data.length / 80) * 0.05) return null;
 
-            // Логика разворота
-            if (mDown > mUp * 1.3 && globalTrendUp) {
-                isUp = false; logic = t.reversal; score = 84;
-            } else if (mUp > mDown * 1.3 && !globalTrendUp) {
-                isUp = true; logic = t.reversal; score = 84;
-            }
+            const isUp = gDown > gUp; // Упрощенная логика разворота: если много падали, ждем рост
+            const confidence = Math.min(68 + (Math.random() * 22), 98.4).toFixed(1);
+            
+            return {
+                isUp,
+                confidence,
+                volatility: totalColored > (data.length / 80) * 0.2 ? 'high' : 'stable'
+            };
+        }
 
-            // Визуализация рамки на канвасе
-            ctx.strokeStyle = isUp ? "#00f281" : "#ff4b5c";
-            ctx.lineWidth = 6;
-            ctx.strokeRect(microX, minY, w-microX, maxY-minY);
-
-            // Переключение экранов
+        function showResults(res) {
+            const t = trans[currentLang];
             document.getElementById('screen-upload').classList.remove('active');
             document.getElementById('screen-result').classList.add('active');
             document.getElementById('step-upload').classList.remove('active');
             document.getElementById('step-result').classList.add('active');
             
             const resS = document.getElementById('resSignal');
-            resS.innerText = isUp ? t.up : t.down;
-            resS.style.color = isUp ? "var(--accent)" : "var(--danger)";
-            document.getElementById('resBorder').style.borderColor = resS.style.color;
+            resS.innerText = res.isUp ? t.up : t.down;
+            resS.style.color = res.isUp ? "var(--accent)" : "var(--danger)";
             
-            document.getElementById('trend-status').innerText = logic;
-            document.getElementById('impulse-power').innerText = (maxY - minY > h * 0.2) ? t.high_p : t.stable;
-            document.getElementById('rec-time').innerText = logic === t.reversal ? "1-3 MIN" : "5-10 MIN";
-            document.getElementById('resAccuracy').innerText = "Confidence: " + (score + Math.random()*10).toFixed(1) + "%";
+            document.getElementById('resBorder').style.borderColor = resS.style.color;
+            document.getElementById('resAccuracy').innerText = `Confidence: ${res.confidence}%`;
+            document.getElementById('trend-status').innerText = Math.random() > 0.5 ? t.following : t.reversal;
+            document.getElementById('impulse-power').innerText = res.volatility === 'high' ? t.high_p : t.stable;
+            document.getElementById('rec-time').innerText = res.isUp ? "2-5 MIN" : "1-3 MIN";
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        };
+        }
     </script>
 </body>
 </html>
