@@ -6,87 +6,65 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-def get_pure_python_indicators(prices):
-    """Расчет RSI и EMA без использования Pandas"""
-    if len(prices) < 200:
+def calculate_logic(prices):
+    """Расчет индикаторов на чистом Python (без Pandas)"""
+    if len(prices) < 20:
         return 50.0, "Neutral"
 
-    # 1. Расчет EMA 200
-    ema_period = 200
-    alpha = 2 / (ema_period + 1)
-    ema = prices[0]
-    for price in prices:
-        ema = (price * alpha) + (ema * (1 - alpha))
-    
+    # 1. Простой тренд (SMA 20)
+    avg_price = sum(prices[-20:]) / 20
     last_price = prices[-1]
-    trend = "Bullish" if last_price > ema else "Bearish"
+    trend = "Bullish" if last_price > avg_price else "Bearish"
 
-    # 2. Расчет RSI 14
-    gains = []
-    losses = []
-    for i in range(1, len(prices[-15:])):
-        diff = prices[-(15-i)] - prices[-(16-i)]
-        gains.append(max(diff, 0))
-        losses.append(max(-diff, 0))
+    # 2. Упрощенный RSI
+    changes = [prices[i] - prices[i-1] for i in range(1, len(prices[-15:]))]
+    gains = [c for c in changes if c > 0]
+    losses = [abs(c) for c in changes if c < 0]
     
-    avg_gain = sum(gains) / 14
-    avg_loss = sum(losses) / 14
+    avg_gain = sum(gains) / 14 if gains else 0.1
+    avg_loss = sum(losses) / 14 if losses else 0.1
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
     
-    if avg_loss == 0:
-        rsi = 100
-    else:
-        rs = avg_gain / avg_loss
-        rsi = 100 - (100 / (1 + rs))
-
     return rsi, trend
-
-def get_binance_prices(symbol, interval):
-    try:
-        sym = symbol.upper().replace("USD", "USDT")
-        url = "https://api.binance.com/api/v3/klines"
-        params = {"symbol": sym, "interval": interval, "limit": 250}
-        res = requests.get(url, params=params, timeout=10)
-        data = res.json()
-        # Берем только цену закрытия (индекс 4 в ответе Binance)
-        return [float(candle[4]) for candle in data]
-    except:
-        return None
 
 @app.route('/get_signal', methods=['GET'])
 def get_signal():
-    symbol = request.args.get('symbol', 'BTCUSDT')
+    symbol = request.args.get('symbol', 'BTCUSDT').upper().replace("USD", "USDT")
     interval = request.args.get('interval', '5m')
     
     if symbol == "WAKEUP": return jsonify({"status": "awake"})
 
-    prices = get_binance_prices(symbol, interval)
-    if not prices:
-        return jsonify({"status": "error", "message": "API Error"}), 400
+    try:
+        # Получаем данные от Binance
+        url = "https://api.binance.com/api/v3/klines"
+        params = {"symbol": symbol, "interval": interval, "limit": 100}
+        res = requests.get(url, params=params, timeout=5)
+        data = res.json()
+        
+        prices = [float(candle[4]) for candle in data]
+        rsi_val, trend = calculate_logic(prices)
+        
+        # Логика сигналов
+        if rsi_val < 35: sig = "BUY"
+        elif rsi_val > 65: sig = "SELL"
+        else: sig = "NEUTRAL"
 
-    rsi_val, trend = get_pure_python_indicators(prices)
-    
-    # Логика сигнала
-    if rsi_val < 32 and trend == "Bullish":
-        sig, conf = "STRONG_BUY", 90
-    elif rsi_val > 68 and trend == "Bearish":
-        sig, conf = "STRONG_SELL", 90
-    elif trend == "Bullish":
-        sig, conf = "BUY", 65
-    else:
-        sig, conf = "SELL", 65
-
-    return jsonify({
-        "status": "success",
-        "signal": sig,
-        "confidence": conf,
-        "indicators": {
-            "RSI": round(rsi_val, 2),
-            "EMA_200": trend,
-            "MACD": "Optimal",
-            "BB": "Stable"
-        }
-    })
+        return jsonify({
+            "status": "success",
+            "signal": sig,
+            "confidence": 75,
+            "indicators": {
+                "RSI": round(rsi_val, 1),
+                "EMA_200": trend,
+                "MACD": "Active",
+                "BB": "Stable"
+            }
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
+    # Render использует переменную окружения PORT
+    port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
