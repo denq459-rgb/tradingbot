@@ -1,0 +1,4 @@
+flask
+flask-cors
+tradingview-ta
+gunicorn
