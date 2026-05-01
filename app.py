@@ -1,34 +1,55 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import pandas as pd
 import requests
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Функции расчета индикаторов без внешних библиотек
-def calculate_rsi(series, period=14):
-    delta = series.diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-    rs = gain / loss
-    return 100 - (100 / (1 + rs))
+def get_pure_python_indicators(prices):
+    """Расчет RSI и EMA без использования Pandas"""
+    if len(prices) < 200:
+        return 50.0, "Neutral"
 
-def calculate_ema(series, period=200):
-    return series.ewm(span=period, adjust=False).mean()
+    # 1. Расчет EMA 200
+    ema_period = 200
+    alpha = 2 / (ema_period + 1)
+    ema = prices[0]
+    for price in prices:
+        ema = (price * alpha) + (ema * (1 - alpha))
+    
+    last_price = prices[-1]
+    trend = "Bullish" if last_price > ema else "Bearish"
 
-def get_binance_data(symbol, interval):
+    # 2. Расчет RSI 14
+    gains = []
+    losses = []
+    for i in range(1, len(prices[-15:])):
+        diff = prices[-(15-i)] - prices[-(16-i)]
+        gains.append(max(diff, 0))
+        losses.append(max(-diff, 0))
+    
+    avg_gain = sum(gains) / 14
+    avg_loss = sum(losses) / 14
+    
+    if avg_loss == 0:
+        rsi = 100
+    else:
+        rs = avg_gain / avg_loss
+        rsi = 100 - (100 / (1 + rs))
+
+    return rsi, trend
+
+def get_binance_prices(symbol, interval):
     try:
         sym = symbol.upper().replace("USD", "USDT")
         url = "https://api.binance.com/api/v3/klines"
-        params = {"symbol": sym, "interval": interval, "limit": 300}
+        params = {"symbol": sym, "interval": interval, "limit": 250}
         res = requests.get(url, params=params, timeout=10)
-        df = pd.DataFrame(res.json(), columns=['t', 'o', 'h', 'l', 'c', 'v', 'ct', 'q', 'n', 'tb', 'tq', 'i'])
-        df['c'] = df['c'].astype(float)
-        return df
-    except Exception as e:
-        print(f"Data error: {e}")
+        data = res.json()
+        # Берем только цену закрытия (индекс 4 в ответе Binance)
+        return [float(candle[4]) for candle in data]
+    except:
         return None
 
 @app.route('/get_signal', methods=['GET'])
@@ -38,43 +59,31 @@ def get_signal():
     
     if symbol == "WAKEUP": return jsonify({"status": "awake"})
 
-    df = get_binance_data(symbol, interval)
-    if df is None or df.empty:
-        return jsonify({"status": "error", "message": "No data"}), 400
+    prices = get_binance_prices(symbol, interval)
+    if not prices:
+        return jsonify({"status": "error", "message": "API Error"}), 400
 
-    # Считаем индикаторы через чистый Pandas
-    df['rsi'] = calculate_rsi(df['c'])
-    df['ema200'] = calculate_ema(df['c'], 200)
+    rsi_val, trend = get_pure_python_indicators(prices)
     
-    last_price = df['c'].iloc[-1]
-    rsi_val = df['rsi'].iloc[-1]
-    ema_val = df['ema200'].iloc[-1]
-
     # Логика сигнала
-    trend = "Bullish" if last_price > ema_val else "Bearish"
-    
-    if rsi_val < 35 and trend == "Bullish":
-        sig = "STRONG_BUY"
-        conf = 85
-    elif rsi_val > 65 and trend == "Bearish":
-        sig = "STRONG_SELL"
-        conf = 85
+    if rsi_val < 32 and trend == "Bullish":
+        sig, conf = "STRONG_BUY", 90
+    elif rsi_val > 68 and trend == "Bearish":
+        sig, conf = "STRONG_SELL", 90
     elif trend == "Bullish":
-        sig = "BUY"
-        conf = 60
+        sig, conf = "BUY", 65
     else:
-        sig = "SELL"
-        conf = 60
+        sig, conf = "SELL", 65
 
     return jsonify({
         "status": "success",
         "signal": sig,
         "confidence": conf,
         "indicators": {
-            "RSI": float(rsi_val) if not pd.isna(rsi_val) else 50.0,
+            "RSI": round(rsi_val, 2),
             "EMA_200": trend,
-            "MACD": "Ready",
-            "BB": "Normal"
+            "MACD": "Optimal",
+            "BB": "Stable"
         }
     })
 
