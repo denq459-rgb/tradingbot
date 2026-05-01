@@ -57,10 +57,10 @@
         .content { flex: 1; padding: 15px; padding-bottom: 90px; }
         
         /* Вкладки */
-        .tab-area { display: none; }
-        .tab-area.active { display: block; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        /* Экраны внутри вкладок */
+        /* Экраны */
         .screen { display: none; animation: fadeIn 0.2s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -77,6 +77,7 @@
 
         .pairs-list { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
         .pair-row { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #1a1f29; cursor: pointer; }
+        .pair-row:active { background: var(--card-bg-hover); }
         .pair-flags { font-size: 14px; font-weight: 700; flex: 1; }
 
         .timer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
@@ -86,7 +87,7 @@
         }
         .timer-item.selected { border-color: var(--accent); background: rgba(0, 242, 129, 0.05); }
 
-        .result-card { background: var(--card-bg); border-radius: 28px; padding: 25px 20px; text-align: center; border: 2px solid var(--border); }
+        .result-card { background: var(--card-bg); border-radius: 28px; padding: 25px 20px; text-align: center; border: 2px solid var(--border); transition: 0.4s; }
         .conf-container { margin: 20px 0; text-align: left; }
         .conf-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-gray); margin-bottom: 5px; }
         .conf-bar-bg { width: 100%; height: 8px; background: #11151e; border-radius: 4px; overflow: hidden; }
@@ -117,7 +118,7 @@
     <div class="app-header">
         <div class="header-logo">📈</div>
         <h1 class="app-title">Kryon Algo Trade Bot</h1>
-        <p class="app-subtitle">Precision Markets Analysis</p>
+        <p class="app-subtitle">Forex Markets Analysis</p>
         
         <div class="steps-bar" id="stepsBar">
             <span id="step-pairs" class="active">Pairs</span>
@@ -127,37 +128,29 @@
     </div>
 
     <div class="content">
-        <!-- Вкладка Сигналы -->
-        <div id="tab-signals" class="tab-area active">
+        <!-- ТАБ: СИГНАЛЫ -->
+        <div id="tab-signals" class="tab-content active">
             
             <div id="screen-modes" class="screen active">
                 <div class="card" onclick="window.switchScreen('assets')">
                     <div class="card-icon">⚡</div>
                     <div class="card-info">
                         <div class="card-title">Technical Analysis</div>
-                        <div class="card-desc">RSI, EMA 200, MACD & Bollinger</div>
+                        <div class="card-desc">Forex: RSI, EMA & Price Action</div>
                     </div>
                 </div>
             </div>
 
             <div id="screen-assets" class="screen">
                 <div class="pairs-list">
-    <div class="pair-row" onclick="window.toTimer('EURUSD', 'EUR/USD')">
-        <div class="pair-flags">🇪🇺/🇺🇸 EUR / USD</div>
-    </div>
-    <div class="pair-row" onclick="window.toTimer('GBPUSD', 'GBP/USD')">
-        <div class="pair-flags">🇬🇧/🇺🇸 GBP / USD</div>
-    </div>
-    <div class="pair-row" onclick="window.toTimer('USDJPY', 'USD/JPY')">
-        <div class="pair-flags">🇺🇸/🇯🇵 USD / JPY</div>
-    </div>
-    <div class="pair-row" onclick="window.toTimer('AUDUSD', 'AUD/USD')">
-        <div class="pair-flags">🇦🇺/🇺🇸 AUD / USD</div>
-    </div>
-    <div class="pair-row" onclick="window.toTimer('EURJPY', 'EUR/JPY')">
-        <div class="pair-flags">🇪🇺/🇯🇵 EUR / JPY</div>
-    </div>
-</div>
+                    <div class="pair-row" onclick="window.toTimer('EURUSD', 'EUR / USD')"><div class="pair-flags">🇪🇺/🇺🇸 EUR / USD</div></div>
+                    <div class="pair-row" onclick="window.toTimer('GBPUSD', 'GBP / USD')"><div class="pair-flags">🇬🇧/🇺🇸 GBP / USD</div></div>
+                    <div class="pair-row" onclick="window.toTimer('USDJPY', 'USD / JPY')"><div class="pair-flags">🇺🇸/🇯🇵 USD / JPY</div></div>
+                    <div class="pair-row" onclick="window.toTimer('AUDUSD', 'AUD / USD')"><div class="pair-flags">🇦🇺/🇺🇸 AUD / USD</div></div>
+                    <div class="pair-row" onclick="window.toTimer('BTCUSD', 'BTC / USD')"><div class="pair-flags">₿ BTC / USD</div></div>
+                </div>
+                <div class="back-link" onclick="window.switchScreen('modes')">← Back</div>
+            </div>
 
             <div id="screen-timer" class="screen">
                 <div style="text-align:center;"><h3 id="timer-pair-name">---</h3></div>
@@ -178,25 +171,26 @@
                         <div class="conf-bar-bg"><div id="conf-bar" class="conf-bar-fill"></div></div>
                     </div>
                     <div class="analysis-box">
-                        <div class="analysis-item"><span>Trend (EMA 200):</span> <b id="ind-ema">---</b></div>
-                        <div class="analysis-item"><span>Momentum (MACD):</span> <b id="ind-macd">---</b></div>
-                        <div class="analysis-item"><span>Oscillator (RSI):</span> <b id="ind-rsi">---</b></div>
-                        <div class="analysis-item"><span>Volatility (BB):</span> <b id="ind-bb">---</b></div>
+                        <div class="analysis-item"><span>Global Trend:</span> <b id="ind-ema">---</b></div>
+                        <div class="analysis-item"><span>Momentum (RSI):</span> <b id="ind-rsi">---</b></div>
+                        <div class="analysis-item"><span>Market Status:</span> <b id="ind-macd">---</b></div>
+                        <div class="analysis-item"><span>Volatility:</span> <b id="ind-bb">---</b></div>
                     </div>
                 </div>
-                <button class="main-btn" onclick="window.switchScreen('modes')" style="background:#1c212c; color:#fff;">New Analysis</button>
+                <button class="main-btn" onclick="window.switchScreen('modes')" style="background:#1c212c; color:#fff;">Restart</button>
             </div>
         </div>
 
-        <div id="tab-edu" class="tab-area"> <h2 style="text-align:center;">Education</h2> </div>
-        <div id="tab-rating" class="tab-area"> <h2 style="text-align:center;">Rating</h2> </div>
-        <div id="tab-settings" class="tab-area"> <h2 style="text-align:center;">Settings</h2> </div>
+        <!-- ДРУГИЕ ТАБЫ -->
+        <div id="tab-edu" class="tab-content"><h3 style="text-align:center;">Education Center</h3></div>
+        <div id="tab-top" class="tab-content"><h3 style="text-align:center;">Top Traders</h3></div>
+        <div id="tab-settings" class="tab-content"><h3 style="text-align:center;">Settings</h3></div>
     </div>
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="window.switchTab('signals', 0)">⚡<span>Signals</span></div>
         <div class="nav-item" onclick="window.switchTab('edu', 1)">🎓<span>Learn</span></div>
-        <div class="nav-item" onclick="window.switchTab('rating', 2)">🏆<span>Top</span></div>
+        <div class="nav-item" onclick="window.switchTab('top', 2)">🏆<span>Top</span></div>
         <div class="nav-item" onclick="window.switchTab('settings', 3)">⚙️<span>Settings</span></div>
     </div>
 
@@ -204,30 +198,29 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // ВАШ АКТУАЛЬНЫЙ АДРЕС СЕРВЕРА
         const API_URL = "https://tradingbot-6-s3pn.onrender.com"; 
-        window.selectedTicker = "EURUSDT";
+        
+        window.selectedTicker = "EURUSD";
         window.selectedTime = "5m";
 
         window.switchTab = function(tabId, idx) {
-            document.querySelectorAll('.tab-area').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll('.nav-item')[idx].classList.add('active');
-            
             if(tabId === 'signals') window.switchScreen('modes');
         };
 
         window.switchScreen = function(id) {
-            // Скрываем только экраны внутри текущей вкладки
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             const target = document.getElementById('screen-' + id);
             if(target) target.classList.add('active');
             
             document.querySelectorAll('.steps-bar span').forEach(s => s.classList.remove('active'));
             if(id === 'assets' || id === 'modes') document.getElementById('step-pairs').classList.add('active');
-            if(id === 'timer') document.getElementById('step-time').classList.add('active');
-            if(id === 'result') document.getElementById('step-signal').classList.add('active');
+            else if(id === 'timer') document.getElementById('step-time').classList.add('active');
+            else if(id === 'result') document.getElementById('step-signal').classList.add('active');
         };
 
         window.toTimer = function(ticker, name) {
@@ -248,17 +241,14 @@
             const resBar = document.getElementById('conf-bar');
             const resConf = document.getElementById('conf-percent');
             const resBorder = document.getElementById('resBorder');
-            const analysisItems = document.querySelectorAll('.analysis-item b');
 
             resS.innerText = "CONNECTING...";
             resS.style.color = "#7a828a";
             resBar.style.width = "0%";
             resConf.innerText = "0%";
-            analysisItems.forEach(item => item.innerText = "---");
 
             try {
-                const response = await fetch(`${API_URL}/get_signal?symbol=${window.selectedTicker}&interval=${window.selectedTime}&_t=${Date.now()}`);
-                if (!response.ok) throw new Error();
+                const response = await fetch(`${API_URL}/get_signal?symbol=${window.selectedTicker}&interval=${window.selectedTime}&t=${Date.now()}`);
                 const data = await response.json();
 
                 if (data.status === "success") {
@@ -275,15 +265,20 @@
                     }, 100);
 
                     document.getElementById('ind-ema').innerText = data.indicators.EMA_200;
+                    document.getElementById('ind-rsi').innerText = data.indicators.RSI;
                     document.getElementById('ind-macd').innerText = data.indicators.MACD;
-                    document.getElementById('ind-rsi').innerText = data.indicators.RSI.toFixed(1);
                     document.getElementById('ind-bb').innerText = data.indicators.BB;
+                    
+                    tg.HapticFeedback.notificationOccurred('success');
                 }
             } catch (e) {
                 resS.innerText = "OFFLINE";
                 resS.style.color = "var(--danger)";
             }
         };
+
+        // Прогрев сервера
+        fetch(`${API_URL}/get_signal?symbol=WAKEUP`).catch(() => {});
     </script>
 </body>
 </html>
