@@ -252,25 +252,26 @@
                 const data = await response.json();
 
                 if (data.status === "success") {
-                    const sig = data.signal;
-                    resS.innerText = sig.includes("BUY") ? "CALL 🟢" : (sig.includes("SELL") ? "PUT 🔴" : "WAIT 🟡");
-                    resS.style.color = sig.includes("BUY") ? "var(--bullish)" : (sig.includes("SELL") ? "var(--bearish)" : "var(--warning)");
-                    resBorder.style.borderColor = resS.style.color;
-                    
-                    const conf = data.confidence || 70;
-                    setTimeout(() => {
-                        resBar.style.width = conf + "%";
-                        resConf.innerText = conf + "%";
-                        resBar.style.backgroundColor = resS.style.color;
-                    }, 100);
+    const sig = data.signal;
+    resS.innerText = sig.includes("BUY") ? "CALL 🟢" : (sig.includes("SELL") ? "PUT 🔴" : "WAIT 🟡");
+    resS.style.color = sig.includes("BUY") ? "var(--bullish)" : (sig.includes("SELL") ? "var(--bearish)" : "var(--warning)");
+    resBorder.style.borderColor = resS.style.color;
+    
+    const conf = data.confidence || 70;
+    setTimeout(() => {
+        resBar.style.width = conf + "%";
+        resConf.innerText = conf + "%";
+        resBar.style.backgroundColor = resS.style.color;
+    }, 100);
 
-                    document.getElementById('ind-ema').innerText = data.indicators.EMA_200;
-                    document.getElementById('ind-rsi').innerText = data.indicators.RSI;
-                    document.getElementById('ind-macd').innerText = data.indicators.MACD;
-                    document.getElementById('ind-bb').innerText = data.indicators.BB;
-                    
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
+    // ВАЖНО: Ключи должны совпадать с Python (EMA, RSI, MACD, BB)
+    document.getElementById('ind-ema').innerText = data.indicators.EMA;    // Global Trend
+    document.getElementById('ind-rsi').innerText = data.indicators.RSI;    // Momentum
+    document.getElementById('ind-macd').innerText = data.indicators.MACD;  // Squeeze Status
+    document.getElementById('ind-bb').innerText = data.indicators.BB;      // Pivot Status
+    
+    tg.HapticFeedback.notificationOccurred('success');
+}
             } catch (e) {
                 resS.innerText = "OFFLINE";
                 resS.style.color = "var(--danger)";
