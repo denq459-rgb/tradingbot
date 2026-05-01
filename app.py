@@ -7,95 +7,70 @@ import math
 app = Flask(__name__)
 CORS(app)
 
-def calculate_pro_logic(df):
+@app.route('/get_signal', methods=['GET'])
+def get_signal():
+    symbol = request.args.get('symbol', 'EURUSD').upper()
+    interval = request.args.get('interval', '5m')
+    
+    if symbol == "WAKEUP": return jsonify({"status": "awake"})
+
     try:
-        # Извлекаем данные
-        prices = df['Close'].dropna().tolist()
-        highs = df['High'].dropna().tolist()
-        lows = df['Low'].dropna().tolist()
+        # 1. Загружаем данные (за 5 дней, чтобы точно хватило на индикаторы)
+        yf_symbol = f"{symbol}=X"
+        ticker = yf.Ticker(yf_symbol)
+        df = ticker.history(period="5d", interval=interval)
 
-        if len(prices) < 50:
-            return "NEUTRAL", 50, {"RSI": 50, "Trend": "Wait", "Squeeze": "WAIT", "Pivot": "Mid"}
+        if df.empty:
+            return jsonify({"status": "error", "message": "Market Closed or No Data"})
 
-        last_close = prices[-1]
+        # 2. Подготовка данных
+        prices = df['Close'].tolist()
+        highs = df['High'].tolist()
+        lows = df['Low'].tolist()
+        last_price = prices[-1]
 
-        # 1. Pivot Points (Уровни банков)
-        # Используем данные предыдущего дня (вчерашняя свечка)
-        p_high, p_low, p_close = highs[-2], lows[-2], prices[-2]
-        pivot = (p_high + p_low + p_close) / 3
-        r1 = (2 * pivot) - p_low
-        s1 = (2 * pivot) - p_high
-
-        # 2. TTM Squeeze (Имитация: Bollinger vs Keltner)
+        # --- ИНДИКАТОРЫ (Чистый Python) ---
+        # SMA 20
         sma_20 = sum(prices[-20:]) / 20
-        std_dev = math.sqrt(sum([(x - sma_20)**2 for x in prices[-20:]]) / 20)
-        atr = sum([highs[i] - lows[i] for i in range(-14, 0)]) / 14
         
-        upper_bb, lower_bb = sma_20 + (2 * std_dev), sma_20 - (2 * std_dev)
-        upper_kc, lower_kc = sma_20 + (1.5 * atr), sma_20 - (1.5 * atr)
-        
-        is_squeeze = upper_bb < upper_kc and lower_bb > lower_kc
-
-        # 3. RSI и Тренд
-        ema_50 = sum(prices[-50:]) / 50
+        # RSI 14
         changes = [prices[i] - prices[i-1] for i in range(-14, 0)]
         gains = sum([c for c in changes if c > 0]) / 14
         losses = abs(sum([c for c in changes if c < 0])) / 14
         rsi = 100 - (100 / (1 + (gains/losses if losses > 0 else 1)))
 
-        # Логика сигналов
-        score = 0
-        if last_close <= s1: score += 30
-        if last_close >= r1: score -= 30
-        if not is_squeeze:
-            if rsi < 35: score += 20
-            if rsi > 65: score -= 20
-        if last_close > ema_50: score += 15
-        else: score -= 15
+        # Pivot Points
+        p_high, p_low, p_close = highs[-2], lows[-2], prices[-2]
+        pivot = (p_high + p_low + p_close) / 3
+        s1 = (2 * pivot) - p_high
+        r1 = (2 * pivot) - p_low
 
-        if score >= 50: sig = "STRONG_BUY"
-        elif score >= 20: sig = "BUY"
-        elif score <= -50: sig = "STRONG_SELL"
-        elif score <= -20: sig = "SELL"
+        # --- ЛОГИКА СИГНАЛА ---
+        score = 0
+        if rsi < 35: score += 40
+        if rsi > 65: score -= 40
+        if last_price > sma_20: score += 20
+        else: score -= 20
+
+        if score >= 40: sig = "STRONG_BUY"
+        elif score >= 15: sig = "BUY"
+        elif score <= -40: sig = "STRONG_SELL"
+        elif score <= -15: sig = "SELL"
         else: sig = "NEUTRAL"
 
-        return sig, min(abs(score) + 40, 98), {
-            "RSI": round(rsi, 1),
-            "Trend": "Bullish" if last_close > ema_50 else "Bearish",
-            "Squeeze": "FIRE" if not is_squeeze else "WAIT",
-            "Pivot": "Support" if last_close <= s1 else ("Resist" if last_close >= r1 else "Mid")
-        }
-    except Exception as e:
-        print(f"Logic Error: {e}")
-        return "NEUTRAL", 50, {"RSI": 0, "Trend": "Error", "Squeeze": "ERR", "Pivot": "ERR"}
-
-@app.route('/get_signal', methods=['GET'])
-def get_signal():
-    try:
-        symbol = request.args.get('symbol', 'EURUSD').upper()
-        yf_symbol = f"{symbol}=X"
-        interval = request.args.get('interval', '5m')
-        
-        # Получаем чуть больше данных для корректного расчета индикаторов
-        df = yf.download(yf_symbol, period="5d", interval=interval, progress=False)
-        
-        if df.empty:
-            return jsonify({"status": "error", "message": "No data from Yahoo"})
-
-        signal, confidence, ind = calculate_pro_logic(df)
-
-        # ВАЖНО: Ключи должны совпадать с JS (RSI, EMA, MACD, BB)
+        # ОТВЕТ (Ключи строго под JavaScript)
         return jsonify({
             "status": "success",
-            "signal": signal,
-            "confidence": confidence,
+            "signal": sig,
+            "confidence": min(abs(score) + 40, 98),
             "indicators": {
-                "RSI": str(ind["RSI"]),
-                "EMA": ind["Trend"],
-                "MACD": ind["SQUEEZE"], # Отправляем Squeeze в поле MACD
-                "BB": ind["Pivot"]      # Отправляем Pivot в поле BB
+                "EMA": "Bullish" if last_price > sma_20 else "Bearish",
+                "RSI": str(round(rsi, 1)),
+                "MACD": "FIRE" if abs(score) > 30 else "WAIT",
+                "BB": "Support" if last_price <= s1 else ("Resist" if last_price >= r1 else "Mid")
             }
         })
+
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
