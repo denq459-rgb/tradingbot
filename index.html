@@ -29,7 +29,6 @@
             display: flex; flex-direction: column; min-height: 100vh;
         }
 
-        /* --- HEADER --- */
         .app-header {
             padding: 20px 15px 15px;
             text-align: center;
@@ -41,7 +40,7 @@
             border-radius: 10px;
             display: inline-flex; align-items: center; justify-content: center;
             border: 1px solid var(--accent);
-            margin-bottom: 8px; color: var(--accent); font-size: 18px;
+            margin: 0 auto 8px auto; color: var(--accent); font-size: 18px;
         }
         .app-title { font-size: 18px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
         .app-subtitle { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
@@ -56,11 +55,16 @@
         .steps-bar span.active::before { content: '●'; color: var(--accent); }
 
         .content { flex: 1; padding: 15px; padding-bottom: 90px; }
+        
+        /* Вкладки */
+        .tab-area { display: none; }
+        .tab-area.active { display: block; }
+
+        /* Экраны внутри вкладок */
         .screen { display: none; animation: fadeIn 0.2s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CARDS */
         .card {
             background: var(--card-bg); border-radius: 16px; padding: 20px;
             margin-bottom: 12px; border: 1px solid var(--border);
@@ -75,7 +79,6 @@
         .pair-row { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #1a1f29; cursor: pointer; }
         .pair-flags { font-size: 14px; font-weight: 700; flex: 1; }
 
-        /* TIMERS */
         .timer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
         .timer-item {
             background: var(--card-bg); border: 1px solid var(--border);
@@ -83,17 +86,14 @@
         }
         .timer-item.selected { border-color: var(--accent); background: rgba(0, 242, 129, 0.05); }
 
-        /* RESULT SCREEN */
-        .result-card { background: var(--card-bg); border-radius: 28px; padding: 25px 20px; text-align: center; border: 2px solid var(--border); transition: 0.4s; }
-        
+        .result-card { background: var(--card-bg); border-radius: 28px; padding: 25px 20px; text-align: center; border: 2px solid var(--border); }
         .conf-container { margin: 20px 0; text-align: left; }
-        .conf-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-gray); margin-bottom: 5px; font-weight: bold; }
-        .conf-bar-bg { width: 100%; height: 8px; background: #11151e; border-radius: 4px; overflow: hidden; border: 1px solid #1a1f29; }
-        .conf-bar-fill { width: 0%; height: 100%; background: var(--accent); transition: 1.5s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
+        .conf-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-gray); margin-bottom: 5px; }
+        .conf-bar-bg { width: 100%; height: 8px; background: #11151e; border-radius: 4px; overflow: hidden; }
+        .conf-bar-fill { width: 0%; height: 100%; background: var(--accent); transition: 1.2s; }
 
         .analysis-box { background: #11151e; border-radius: 14px; padding: 15px; margin-top: 15px; text-align: left; border: 1px solid var(--border); }
         .analysis-item { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; color: var(--text-gray); border-bottom: 1px solid #1a1f29; padding-bottom: 4px; }
-        .analysis-item:last-child { border-bottom: none; }
         .analysis-item b { color: #fff; }
 
         .main-btn {
@@ -103,7 +103,6 @@
         }
         .back-link { text-align: center; color: var(--text-gray); font-size: 13px; margin-top: 15px; cursor: pointer; }
 
-        /* NAV BAR */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%;
             background: #11151e; display: flex; justify-content: space-around;
@@ -128,7 +127,8 @@
     </div>
 
     <div class="content">
-        <div id="tab-signals" class="screen active">
+        <!-- Вкладка Сигналы -->
+        <div id="tab-signals" class="tab-area active">
             
             <div id="screen-modes" class="screen active">
                 <div class="card" onclick="window.switchScreen('assets')">
@@ -142,9 +142,9 @@
 
             <div id="screen-assets" class="screen">
                 <div class="pairs-list">
-                    <div class="pair-row" onclick="window.toTimer('EURUSD', 'EUR/USD')"><div class="pair-flags">🇪🇺/🇺🇸 EUR / USD</div></div>
-                    <div class="pair-row" onclick="window.toTimer('GBPUSD', 'GBP/USD')"><div class="pair-flags">🇬🇧/🇺🇸 GBP / USD</div></div>
-                    <div class="pair-row" onclick="window.toTimer('BTCUSDT', 'BTC/USDT')"><div class="pair-flags">₿ BTC / USDT</div></div>
+                    <div class="pair-row" onclick="window.toTimer('EURUSD', 'EUR/USD')"><div class="pair-flags">🇪🇺/🇺🇸 EUR/USD</div></div>
+                    <div class="pair-row" onclick="window.toTimer('GBPUSD', 'GBP/USD')"><div class="pair-flags">🇬🇧/🇺🇸 GBP/USD</div></div>
+                    <div class="pair-row" onclick="window.toTimer('BTCUSDT', 'BTC/USDT')"><div class="pair-flags">₿ BTC/USDT</div></div>
                 </div>
                 <div class="back-link" onclick="window.switchScreen('modes')">← Back</div>
             </div>
@@ -160,19 +160,15 @@
                 <div class="back-link" onclick="window.switchScreen('assets')">← Back</div>
             </div>
 
-            <!-- ЭКРАН РЕЗУЛЬТАТА -->
             <div id="screen-result" class="screen">
                 <div class="result-card" id="resBorder">
-                    <div style="color: var(--text-gray); font-size: 10px; letter-spacing: 1.5px;">KRYON AI SYSTEM</div>
                     <div id="resSignal" style="font-size: 42px; font-weight: 900; margin: 10px 0;">---</div>
-                    
                     <div class="conf-container">
                         <div class="conf-label"><span>Signal Strength</span> <span id="conf-percent">0%</span></div>
                         <div class="conf-bar-bg"><div id="conf-bar" class="conf-bar-fill"></div></div>
                     </div>
-                    
                     <div class="analysis-box">
-                        <div class="analysis-item"><span>Global Trend (EMA 200):</span> <b id="ind-ema">---</b></div>
+                        <div class="analysis-item"><span>Trend (EMA 200):</span> <b id="ind-ema">---</b></div>
                         <div class="analysis-item"><span>Momentum (MACD):</span> <b id="ind-macd">---</b></div>
                         <div class="analysis-item"><span>Oscillator (RSI):</span> <b id="ind-rsi">---</b></div>
                         <div class="analysis-item"><span>Volatility (BB):</span> <b id="ind-bb">---</b></div>
@@ -181,13 +177,17 @@
                 <button class="main-btn" onclick="window.switchScreen('modes')" style="background:#1c212c; color:#fff;">New Analysis</button>
             </div>
         </div>
+
+        <div id="tab-edu" class="tab-area"> <h2 style="text-align:center;">Education</h2> </div>
+        <div id="tab-rating" class="tab-area"> <h2 style="text-align:center;">Rating</h2> </div>
+        <div id="tab-settings" class="tab-area"> <h2 style="text-align:center;">Settings</h2> </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active">⚡<span>Signals</span></div>
-        <div class="nav-item">🎓<span>Learn</span></div>
-        <div class="nav-item">🏆<span>Rating</span></div>
-        <div class="nav-item">⚙️<span>Settings</span></div>
+        <div class="nav-item active" onclick="window.switchTab('signals', 0)">⚡<span>Signals</span></div>
+        <div class="nav-item" onclick="window.switchTab('edu', 1)">🎓<span>Learn</span></div>
+        <div class="nav-item" onclick="window.switchTab('rating', 2)">🏆<span>Top</span></div>
+        <div class="nav-item" onclick="window.switchTab('settings', 3)">⚙️<span>Settings</span></div>
     </div>
 
     <script>
@@ -195,22 +195,27 @@
         tg.expand();
 
         const API_URL = "https://tradingbot-2-reh3.onrender.com"; 
-
         window.selectedTicker = "EURUSDT";
         window.selectedTime = "5m";
 
-        // Прогрев сервера при запуске
-        window.onload = () => {
-            fetch(`${API_URL}/get_signal?symbol=WAKEUP`).catch(() => {});
+        window.switchTab = function(tabId, idx) {
+            document.querySelectorAll('.tab-area').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[idx].classList.add('active');
+            
+            if(tabId === 'signals') window.switchScreen('modes');
         };
 
         window.switchScreen = function(id) {
+            // Скрываем только экраны внутри текущей вкладки
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-' + id).classList.add('active');
+            const target = document.getElementById('screen-' + id);
+            if(target) target.classList.add('active');
             
-            // Управление индикатором шагов
             document.querySelectorAll('.steps-bar span').forEach(s => s.classList.remove('active'));
-            if(id === 'assets') document.getElementById('step-pairs').classList.add('active');
+            if(id === 'assets' || id === 'modes') document.getElementById('step-pairs').classList.add('active');
             if(id === 'timer') document.getElementById('step-time').classList.add('active');
             if(id === 'result') document.getElementById('step-signal').classList.add('active');
         };
@@ -227,71 +232,46 @@
             window.selectedTime = el.innerText;
         };
 
-        // --- ИНТЕГРИРОВАННАЯ ФУНКЦИЯ АНАЛИЗА ---
         window.toFinalResult = async function() {
             window.switchScreen('result');
-            
             const resS = document.getElementById('resSignal');
             const resBar = document.getElementById('conf-bar');
             const resConf = document.getElementById('conf-percent');
             const resBorder = document.getElementById('resBorder');
             const analysisItems = document.querySelectorAll('.analysis-item b');
 
-            // 1. ПОЛНЫЙ СБРОС
             resS.innerText = "CONNECTING...";
             resS.style.color = "#7a828a";
             resBar.style.width = "0%";
             resConf.innerText = "0%";
-            resBorder.style.borderColor = "var(--border)";
             analysisItems.forEach(item => item.innerText = "---");
 
             try {
-                // 2. ЗАПРОС К СЕРВЕРУ (с анти-кэшем)
-                const response = await fetch(`${API_URL}/get_signal?symbol=${window.selectedTicker}&interval=${window.selectedTime}&_t=${Date.now()}`, {
-                    method: 'GET',
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
-
-                if (!response.ok) throw new Error("Server Offline");
-
+                const response = await fetch(`${API_URL}/get_signal?symbol=${window.selectedTicker}&interval=${window.selectedTime}&_t=${Date.now()}`);
+                if (!response.ok) throw new Error();
                 const data = await response.json();
 
-                if (data.status === "success" && data.signal) {
-                    // 3. ОТОБРАЖАЕМ РЕАЛЬНЫЙ СИГНАЛ
+                if (data.status === "success") {
                     const sig = data.signal;
                     resS.innerText = sig.includes("BUY") ? "CALL 🟢" : (sig.includes("SELL") ? "PUT 🔴" : "WAIT 🟡");
                     resS.style.color = sig.includes("BUY") ? "var(--bullish)" : (sig.includes("SELL") ? "var(--bearish)" : "var(--warning)");
-                    
                     resBorder.style.borderColor = resS.style.color;
                     
-                    // Сила сигнала
-                    const confidence = data.confidence || (sig.includes("STRONG") ? 88 : 65);
+                    const conf = data.confidence || 70;
                     setTimeout(() => {
-                        resBar.style.width = confidence + "%";
-                        resConf.innerText = confidence + "%";
+                        resBar.style.width = conf + "%";
+                        resConf.innerText = conf + "%";
                         resBar.style.backgroundColor = resS.style.color;
                     }, 100);
 
-                    // 4. ЗАПОЛНЕНИЕ ИНДИКАТОРОВ
-                    document.getElementById('ind-ema').innerText = data.indicators.EMA_200 || "Neutral";
-                    document.getElementById('ind-macd').innerText = data.indicators.MACD || "No Cross";
-                    document.getElementById('ind-rsi').innerText = data.indicators.RSI ? data.indicators.RSI.toFixed(1) : "--";
-                    document.getElementById('ind-bb').innerText = data.indicators.BB || "Inside";
-
-                    tg.HapticFeedback.notificationOccurred('success');
-                } else {
-                    throw new Error("Invalid Data");
+                    document.getElementById('ind-ema').innerText = data.indicators.EMA_200;
+                    document.getElementById('ind-macd').innerText = data.indicators.MACD;
+                    document.getElementById('ind-rsi').innerText = data.indicators.RSI.toFixed(1);
+                    document.getElementById('ind-bb').innerText = data.indicators.BB;
                 }
-
             } catch (e) {
-                // 5. ОБРАБОТКА ОШИБКИ / ВЫКЛЮЧЕННОГО СЕРВЕРА
-                console.error("Fetch Error:", e);
                 resS.innerText = "OFFLINE";
                 resS.style.color = "var(--danger)";
-                resBorder.style.borderColor = "var(--danger)";
-                resConf.innerText = "ERROR";
-                
-                tg.HapticFeedback.notificationOccurred('error');
             }
         };
     </script>
