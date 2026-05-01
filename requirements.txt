@@ -1,4 +1,6 @@
 flask
 flask-cors
-tradingview-ta
+pandas
+pandas_ta
+requests
 gunicorn
