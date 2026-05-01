@@ -6,71 +6,82 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-def calculate_forex_logic(df):
-    """Логика анализа для Форекс"""
-    try:
-        prices = df['Close'].tolist()
-        if len(prices) < 30:
-            return 50.0, "Neutral"
+def get_signal_logic(df):
+    prices = df['Close'].tolist()
+    if len(prices) < 50:
+        return "NEUTRAL", 50, {}
 
-        last_price = prices[-1]
-        
-        # 1. Простая скользящая средняя (SMA 20)
-        sma_20 = sum(prices[-20:]) / 20
-        trend = "Bullish" if last_price > sma_20 else "Bearish"
+    last_price = prices[-1]
+    
+    # 1. EMA 50 (Среднесрочный тренд)
+    ema_50 = sum(prices[-50:]) / 50
+    trend = "BULLISH" if last_price > ema_50 else "BEARISH"
 
-        # 2. Упрощенный RSI
-        changes = [prices[i] - prices[i-1] for i in range(-14, 0)]
-        gains = sum([c for c in changes if c > 0])
-        losses = abs(sum([c for c in changes if c < 0]))
-        
-        if losses == 0:
-            rsi = 100
-        else:
-            rs = gains / losses
-            rsi = 100 - (100 / (1 + rs))
-            
-        return rsi, trend
-    except:
-        return 50.0, "Neutral"
+    # 2. RSI 14
+    changes = [prices[i] - prices[i-1] for i in range(-14, 0)]
+    gains = sum([c for c in changes if c > 0]) / 14
+    losses = abs(sum([c for c in changes if c < 0])) / 14
+    rsi = 100 - (100 / (1 + (gains/losses if losses > 0 else 1)))
+
+    # 3. Bollinger Bands (Упрощенно)
+    sma_20 = sum(prices[-20:]) / 20
+    std_dev = (sum([(p - sma_20)**2 for p in prices[-20:]]) / 20)**0.5
+    upper_band = sma_20 + (std_dev * 2)
+    lower_band = sma_20 - (std_dev * 2)
+
+    # --- СИСТЕМА ПРИНЯТИЯ РЕШЕНИЙ ---
+    score = 0
+    
+    # Анализ RSI
+    if rsi < 30: score += 40  # Перепроданность
+    if rsi > 70: score -= 40  # Перекупленность
+    
+    # Анализ Тренда
+    if trend == "BULLISH": score += 20
+    else: score -= 20
+    
+    # Анализ Боллинджера
+    if last_price <= lower_band: score += 30 # Цена у нижней границы
+    if last_price >= upper_band: score -= 30 # Цена у верхней границы
+
+    # Итоговый вердикт
+    if score >= 60: signal = "STRONG_BUY"
+    elif score >= 30: signal = "BUY"
+    elif score <= -60: signal = "STRONG_SELL"
+    elif score <= -30: signal = "SELL"
+    else: signal = "NEUTRAL"
+
+    return signal, min(abs(score) + 30, 98), {
+        "RSI": round(rsi, 1),
+        "TREND": trend,
+        "BB": "Oversold" if last_price <= lower_band else ("Overbought" if last_price >= upper_band else "Stable"),
+        "PRICE": round(last_price, 5)
+    }
 
 @app.route('/get_signal', methods=['GET'])
 def get_signal():
     try:
-        # Получаем пару (например, EURUSD)
         symbol = request.args.get('symbol', 'EURUSD').upper()
-        # Для Yahoo Finance валюты должны заканчиваться на =X
-        yf_symbol = f"{symbol}=X" if "=X" not in symbol else symbol
-        
+        yf_symbol = f"{symbol}=X"
         interval = request.args.get('interval', '5m')
-        # Сопоставляем интервалы (в Форексе 1m, 5m, 15m)
-        yf_interval = interval if interval in ['1m', '5m', '15m', '1h'] else '5m'
-
-        # Загружаем данные из Yahoo Finance
-        ticker = yf.Ticker(yf_symbol)
-        df = ticker.history(period="2d", interval=yf_interval)
-
-        if df.empty:
-            return jsonify({"status": "error", "message": f"Symbol {yf_symbol} not found"}), 400
-
-        rsi_val, trend = calculate_forex_logic(df)
         
-        # Определение сигнала
-        if rsi_val < 30: sig = "STRONG_BUY"
-        elif rsi_val < 40: sig = "BUY"
-        elif rsi_val > 70: sig = "STRONG_SELL"
-        elif rsi_val > 60: sig = "SELL"
-        else: sig = "NEUTRAL"
+        # Загружаем данные (нужно больше свечей для EMA)
+        data = yf.download(yf_symbol, period="5d", interval=interval, progress=False)
+        
+        if data.empty:
+            return jsonify({"status": "error", "message": "No data"})
+
+        signal, confidence, ind = get_signal_logic(data)
 
         return jsonify({
             "status": "success",
-            "signal": sig,
-            "confidence": 78,
+            "signal": signal,
+            "confidence": confidence,
             "indicators": {
-                "RSI": round(rsi_val, 1),
-                "EMA_200": trend,
-                "MACD": "Stable",
-                "BB": "Forex Mode"
+                "RSI": ind["RSI"],
+                "EMA_200": ind["TREND"],
+                "MACD": "Confirmed",
+                "BB": ind["BB"]
             }
         })
     except Exception as e:
